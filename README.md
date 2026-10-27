@@ -41,9 +41,9 @@ npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
 
-Tests run in headed Chromium. Before the specs run, the `auth-setup` project logs in once and saves the session to `artifacts/.auth/`, which the other specs reuse.
+Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login spec, from a clean browser), then `auth-setup`, which logs in once and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login spec first.
 
-> **Caution:** the SMS campaign spec clicks **Send Now**, so every run sends a real campaign to the configured contact list.
+> **Caution:** the SMS campaign spec clicks **Send Now**, so every run sends a real campaign to the configured contact list. Retries are disabled for this spec so a failure can't send a duplicate.
 
 ## Reports and Debugging
 

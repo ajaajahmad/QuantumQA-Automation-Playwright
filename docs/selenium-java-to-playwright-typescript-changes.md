@@ -65,18 +65,18 @@ Code-level changes:
 - `testDir` points to `./e2e`.
 - `outputDir` points to `artifacts/test-results`.
 - HTML report output points to `artifacts/playwright-report`.
-- Two projects are configured:
-  - `auth-setup`
-  - `chromium`
-- The `chromium` project depends on `auth-setup`.
-- Browser is locked to headed Chromium:
+- Three projects run in order:
+  - `login`: the login spec, from a clean browser state
+  - `auth-setup`: depends on `login`
+  - `chromium`: depends on `auth-setup`, runs every other spec
+- Browser is Chromium, headed locally and headless when `CI` is set:
 
 ```ts
 const browserName = 'chromium';
-const headless = false;
+const headless = !!process.env.CI;
 ```
 
-Reason: Playwright project dependencies allow login to happen once before normal tests. Locking to headed Chromium matches the requested local execution behavior and avoids accidental Firefox/WebKit/headless runs from config drift.
+Reason: Playwright project dependencies allow login to happen once before normal tests. The login spec runs first because logging out can end other sessions for the same user, including the saved one. Headed runs match local debugging; CI runners have no display, so they run headless.
 
 ## Framework Structure
 
@@ -162,13 +162,7 @@ artifacts/.auth/session-state.json
 
 Reason: Selenium tests logged in repeatedly through UI. That is slow and brittle. Playwright can reuse cookies and localStorage through `storageState`, but sessionStorage is not included in Playwright's storage state, so a custom sessionStorage capture and restore layer was added.
 
-The auth utility also records auth-like local/session storage entries whose keys match:
-
-```text
-auth | key | token | session | jwt | bearer
-```
-
-Reason: this helps inspect whether tokens/session keys are being captured without hard-coding application-specific key names.
+The restore runs once per tab. Init scripts fire on every navigation, so without that guard a reload would overwrite tokens the app had refreshed, or undo a logout.
 
 ## Specs
 
@@ -180,11 +174,13 @@ Added:
 
 Code-level changes:
 
-- Uses fixture-based `loginPage`.
-- Explicitly disables persisted auth:
+- Uses fixture-based `loginPage`, `loginErrorPage`, and `logoutComponent`.
+- Logs in and out once per credential row.
+- Ports the Java `ErrorValidationTest` checks: empty username, empty password, and invalid credentials. The invalid-credentials test uses a non-existent account so repeated runs can't lock out a real user.
+- Runs in its own `login` project with no `storageState`, and disables the sessionStorage restore:
 
 ```ts
-test.use({ storageState: { cookies: [], origins: [] }, useAuthenticatedSession: false });
+test.use({ useAuthenticatedSession: false });
 ```
 
 Reason: login tests must validate the login page from a clean browser state. If global auth state were applied, the login page might be skipped and the test would no longer test login.
@@ -240,7 +236,7 @@ Code-level changes:
 
 Reason: Java resource folders were removed. Config is now project-level and environment-focused. Env var overrides make the framework easier to run locally and in CI.
 
-Note: browser/headless values are currently fixed in `playwright.config.ts` to headed Chromium, as requested.
+If `config/qa.properties` is missing, a warning is printed and the placeholder values from the example file are used. Empty env vars are treated as unset, and a non-numeric timeout fails fast.
 
 ## Test Data
 
@@ -329,12 +325,6 @@ Full browser execution was not run during migration because it would hit the con
 Many locators were migrated from Selenium XPath to Playwright XPath.
 
 Reason: preserving selector behavior reduced migration risk. Over time, these should be replaced with role, label, text, CSS, or `data-testid` locators where the application supports them.
-
-### Excel Data Retained Temporarily
-
-Some `.xlsx` files remain under `e2e/test-data`.
-
-Reason: they were carried over from the Java framework. If Playwright does not need them, they can be removed in a cleanup pass.
 
 ### Login Flow Still Exists
 

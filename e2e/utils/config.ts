@@ -11,24 +11,37 @@ type AppConfig = {
 };
 
 const rootDir = path.resolve(__dirname, '../..');
-const configPath = firstExistingPath([
-  path.join(rootDir, 'config/qa.properties'),
-  path.join(rootDir, 'config/config.example.properties'),
-]);
+const localConfigPath = path.join(rootDir, 'config/qa.properties');
+const configPath = firstExistingPath([localConfigPath, path.join(rootDir, 'config/config.example.properties')]);
+
+if (configPath !== localConfigPath) {
+  console.warn(`config/qa.properties not found; using placeholder values from ${configPath}`);
+}
 
 const properties = readProperties(configPath);
 
 export const appConfig: AppConfig = {
   appUrl: getConfigValue('app_url', 'APP_URL', 'https://example.com'),
-  timeoutMs: Number(getConfigValue('timeout', 'TIMEOUT_SECONDS', '30')) * 1000,
+  timeoutMs: parseTimeoutSeconds(getConfigValue('timeout', 'TIMEOUT_SECONDS', '30')) * 1000,
   smsListName: getConfigValue('sms_list_name', 'SMS_LIST_NAME', 'automation_sms'),
   smsTemplateName: getConfigValue('sms_template_name', 'SMS_TEMPLATE_NAME', 'test_template'),
   wabaListName: getConfigValue('waba_list_name', 'WABA_LIST_NAME', 'automation_waba'),
   wabaTemplateName: getConfigValue('waba_template_name', 'WABA_TEMPLATE_NAME', 'test_template'),
 };
 
+// Empty values are treated as unset so `APP_URL=` doesn't blank out the file value.
 function getConfigValue(propertyKey: string, envKey: string, fallback: string): string {
-  return process.env[envKey] ?? properties[propertyKey] ?? fallback;
+  return process.env[envKey] || properties[propertyKey] || fallback;
+}
+
+function parseTimeoutSeconds(value: string): number {
+  const seconds = Number(value);
+
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    throw new Error(`Invalid timeout "${value}": expected a positive number of seconds.`);
+  }
+
+  return seconds;
 }
 
 function firstExistingPath(paths: string[]): string {

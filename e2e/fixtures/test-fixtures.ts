@@ -20,10 +20,16 @@ export const test = base.extend<QuantumFixtures>({
       const sessionState = readSessionState();
 
       if (sessionState) {
+        // Init scripts run on every navigation. Restore only once per tab so a reload
+        // doesn't overwrite tokens the app has refreshed, or undo a logout.
         await context.addInitScript((state) => {
-          if (window.location.origin !== state.origin) {
+          const restoredKey = '__pw_session_restored';
+
+          if (window.location.origin !== state.origin || window.sessionStorage.getItem(restoredKey)) {
             return;
           }
+
+          window.sessionStorage.setItem(restoredKey, '1');
 
           for (const entry of state.sessionStorage) {
             window.sessionStorage.setItem(entry.key, entry.value);

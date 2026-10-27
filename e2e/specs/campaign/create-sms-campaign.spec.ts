@@ -3,6 +3,9 @@ import { appConfig } from '../../utils/config';
 import { appendLocalTimestamp } from '../../utils/date-time';
 
 test.describe('SMS campaign creation', () => {
+  // Each run sends a real campaign, so a retry would send a duplicate.
+  test.describe.configure({ retries: 0 });
+
   test('creates an SMS campaign with persisted auth state', async ({ page, smsCampaignPage }) => {
     const campaignName = appendLocalTimestamp('Test_Camp');
 

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { test } from '@playwright/test';
 import { LoginPage } from '../pages/login/login.page';
 import { appConfig } from '../utils/config';
 import { saveAuthState } from '../utils/auth-state';
@@ -12,11 +12,9 @@ test('authenticate and persist browser state', async ({ page }) => {
   }
 
   await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
-  await expect(page.locator("//input[@formcontrolname='username']")).toBeVisible();
 
   const loginPage = new LoginPage(page);
   await loginPage.userLogin(user.username, user.password);
 
-  await expect(page.locator("//input[@formcontrolname='username']")).toBeHidden();
   await saveAuthState(page);
 });

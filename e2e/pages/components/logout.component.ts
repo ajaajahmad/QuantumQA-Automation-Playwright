@@ -12,11 +12,7 @@ export class LogoutComponent extends BasePage {
   }
 
   async userLogout(): Promise<void> {
-    if (!(await this.profileIcon.isVisible().catch(() => false))) {
-      return;
-    }
-
-    await this.profileIcon.click();
-    await this.logoutButton.click();
+    await this.click(this.profileIcon);
+    await this.click(this.logoutButton);
   }
 }

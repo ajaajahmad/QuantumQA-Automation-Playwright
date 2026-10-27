@@ -61,9 +61,17 @@ export class SmsCampaignPage extends BasePage {
     await this.click(this.campaignsSubMenu);
   }
 
+  // The DLT popup only appears for some accounts, and renders after the page loads,
+  // so give it a short window to show up instead of checking visibility once.
   async acknowledgeDltPopupWindow(): Promise<void> {
-    if (await this.campaignsDltPopup.isVisible().catch(() => false)) {
+    const appeared = await this.campaignsDltPopup.waitFor({ state: 'visible', timeout: 5_000 }).then(
+      () => true,
+      () => false,
+    );
+
+    if (appeared) {
       await this.click(this.campaignsDltPopup);
+      await expect(this.campaignsDltPopup).toBeHidden();
     }
   }
 

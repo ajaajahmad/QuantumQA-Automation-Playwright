@@ -33,7 +33,7 @@ tsconfig.json
 
 `config/qa.properties` and real files under `e2e/test-data/` are ignored so credentials and environment-specific data stay local.
 
-The Playwright runner is configured to use headed Chromium by default.
+Tests run in Chromium: headed locally, headless when `CI` is set.
 
 Keep tracked examples current:
 

@@ -13,8 +13,12 @@ export class LoginPage extends BasePage {
     this.loginButton = page.locator('button.submit');
   }
 
-  async isDisplayed(): Promise<boolean> {
-    return this.usernameInput.isVisible().catch(() => false);
+  async expectDisplayed(): Promise<void> {
+    await expect(this.usernameInput).toBeVisible();
+  }
+
+  async expectHidden(): Promise<void> {
+    await expect(this.usernameInput).toBeHidden();
   }
 
   async enterUsername(username: string): Promise<void> {
@@ -34,13 +38,10 @@ export class LoginPage extends BasePage {
       throw new Error('Username or Password cannot be empty');
     }
 
-    if (!(await this.isDisplayed())) {
-      return;
-    }
-
+    await this.expectDisplayed();
     await this.enterUsername(username);
     await this.enterPassword(password);
     await this.clickLoginButton();
-    await expect(this.usernameInput).toBeHidden();
+    await this.expectHidden();
   }
 }

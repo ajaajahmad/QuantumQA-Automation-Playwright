@@ -17,7 +17,7 @@ For a detailed code-level change log, see `docs/selenium-java-to-playwright-type
 - Table selection helper
 - SMS campaign page object
 - SMS campaign creation spec
-- Basic valid login spec
+- Login spec: valid login/logout per credential row, plus empty-field and invalid-credential errors
 - Auth setup that persists cookies, localStorage, and sessionStorage
 
 ## Commands
@@ -44,7 +44,7 @@ The following environment variables can override properties:
 - `WABA_LIST_NAME`
 - `WABA_TEMPLATE_NAME`
 
-The Playwright runner is locked to headed Chromium by default.
+Tests run in Chromium: headed locally, headless when `CI` is set.
 
 ## Migration Notes
 
