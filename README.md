@@ -2,7 +2,7 @@
 
 End-to-end UI tests for a web messaging platform, written in **TypeScript** with **Playwright** using the Page Object Model.
 
-The framework was migrated from Selenium/Java/TestNG. See [docs/playwright-migration.md](docs/playwright-migration.md) for what has been ported and what is still pending.
+The framework was migrated from Selenium/Java/TestNG. See [Migration Status](#migration-status) for what is still pending.
 
 ## Prerequisites
 
@@ -56,7 +56,6 @@ Output goes to `artifacts/` (gitignored):
 
 ```text
 config/            runtime configuration (qa.properties is local only)
-docs/              migration notes and structure guide
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects
@@ -67,7 +66,17 @@ e2e/
 playwright.config.ts
 ```
 
-See [docs/project-structure.md](docs/project-structure.md) for details.
+## Migration Status
+
+Ported so far: login (valid, empty-field, and invalid-credential checks) and SMS campaign creation. Still to migrate from the Java suite:
+
+1. SMS MIS summary and advanced pages
+2. WhatsApp campaign and MIS pages
+3. RCS MIS pages
+4. Truecaller MIS pages
+5. Account MIS pages
+
+Locators are still mostly XPath carried over from Selenium. For new and touched code, prefer Playwright role, label, text, and test-id locators where the app exposes them.
 
 ## License
 
