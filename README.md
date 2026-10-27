@@ -1,4 +1,4 @@
-# QuantumQA Automation Framework
+# QuantumQA-Automation-Playwright
 
 End-to-end UI tests for a web messaging platform, written in **TypeScript** with **Playwright** using the Page Object Model.
 
@@ -12,8 +12,8 @@ The framework was migrated from Selenium/Java/TestNG. See [docs/playwright-migra
 ## Setup
 
 ```bash
-git clone https://github.com/ajaajahmad/QuantumQA-Automation.git
-cd QuantumQA-Automation
+git clone https://github.com/ajaajahmad/QuantumQA-Automation-Playwright.git
+cd QuantumQA-Automation-Playwright
 npm install
 npx playwright install chromium
 ```
