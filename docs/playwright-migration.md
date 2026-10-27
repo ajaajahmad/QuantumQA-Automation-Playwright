@@ -38,8 +38,6 @@ The Playwright stack reads `config/qa.properties` first and falls back to `confi
 The following environment variables can override properties:
 
 - `APP_URL`
-- `BROWSER`
-- `HEADLESS`
 - `TIMEOUT_SECONDS`
 - `SMS_LIST_NAME`
 - `SMS_TEMPLATE_NAME`

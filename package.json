@@ -5,7 +5,6 @@
   "description": "Playwright TypeScript migration for the QuantumQA automation framework.",
   "scripts": {
     "test": "playwright test",
-    "test:headed": "playwright test",
     "test:ui": "playwright test --ui",
     "auth:setup": "playwright test --project=auth-setup",
     "test:sms-campaign": "playwright test e2e/specs/campaign/create-sms-campaign.spec.ts",

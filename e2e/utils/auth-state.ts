@@ -28,12 +28,9 @@ export async function saveAuthState(page: Page): Promise<void> {
         return { key, value: storage.getItem(key) ?? '' };
       }).filter((entry) => entry.key);
 
-    const localStorageEntries = toEntries(window.localStorage);
-    const sessionStorageEntries = toEntries(window.sessionStorage);
-
     return {
       origin: window.location.origin,
-      sessionStorage: sessionStorageEntries,
+      sessionStorage: toEntries(window.sessionStorage),
     };
   });
 
@@ -46,8 +43,4 @@ export function readSessionState(): SessionState | undefined {
   }
 
   return JSON.parse(fs.readFileSync(sessionStatePath, 'utf8')) as SessionState;
-}
-
-export function hasPersistedAuthState(): boolean {
-  return fs.existsSync(storageStatePath) && fs.existsSync(sessionStatePath);
 }
