@@ -1,0 +1,20 @@
+{
+  "name": "quantumqa-automation-playwright",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright TypeScript migration for the QuantumQA automation framework.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test",
+    "test:ui": "playwright test --ui",
+    "auth:setup": "playwright test --project=auth-setup",
+    "test:sms-campaign": "playwright test e2e/specs/campaign/create-sms-campaign.spec.ts",
+    "codegen": "playwright codegen",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.44.0",
+    "@types/node": "^20.12.12",
+    "typescript": "^5.4.5"
+  }
+}

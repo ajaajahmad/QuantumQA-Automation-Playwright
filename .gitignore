@@ -1,0 +1,52 @@
+# Dependencies
+node_modules/
+
+# Playwright artifacts
+artifacts/
+playwright-report/
+test-results/
+.auth/
+**/.auth/
+**/storage-state*.json
+**/session-state*.json
+**/*cookie*.json
+**/*cookies*.json
+**/*token*.json
+**/*secret*.json
+**/*session*.json
+*.har
+*.trace.zip
+*.webm
+*.png
+
+# Local runtime logs
+*.log
+logs/
+
+# Local secrets and environment-specific data
+.env
+.env.*
+config/*.properties
+!config/config.example.properties
+e2e/test-data/*.json
+!e2e/test-data/*.example.json
+e2e/test-data/*.xlsx
+e2e/test-data/*.xls
+e2e/test-data/*.csv
+
+# Build output
+dist/
+
+# IDE / editor files
+.idea/
+.vscode/
+*.iml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
