@@ -6,7 +6,7 @@ The framework was migrated from Selenium/Java/TestNG. See [Migration Status](#mi
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 26+ (`nvm use` picks it up from `.nvmrc`)
 - Access to the target environment (staging by default)
 
 ## Setup
