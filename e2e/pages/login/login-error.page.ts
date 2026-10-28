@@ -10,7 +10,7 @@ export class LoginErrorPage extends BasePage {
     super(page);
     this.usernameRequired = page.locator("//span[contains(text(),'Username is required')]");
     this.passwordRequired = page.locator("//span[contains(text(),'Password is required')]");
-    this.loginErrorMessage = page.locator("div[class*='snack-bar-label']");
+    this.loginErrorMessage = page.locator('[matsnackbarlabel]');
   }
 
   async expectEmptyUsernameError(): Promise<void> {
