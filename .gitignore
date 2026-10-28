@@ -26,10 +26,11 @@ logs/
 # Local secrets and environment-specific data
 .env
 .env.*
+# Real config and credentials: never commit. The globs below also cover any new files here.
+config/qa.properties
+e2e/test-data/userdata.json
 config/*.properties
-!config/config.example.properties
 e2e/test-data/*.json
-!e2e/test-data/*.example.json
 e2e/test-data/*.xlsx
 e2e/test-data/*.xls
 e2e/test-data/*.csv

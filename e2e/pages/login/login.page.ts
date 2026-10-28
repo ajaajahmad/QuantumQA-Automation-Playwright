@@ -4,6 +4,7 @@ export class LoginPage {
   private readonly usernameInput: Locator;
   private readonly passwordInput: Locator;
   private readonly loginButton: Locator;
+  private readonly forgotPasswordLink: Locator;
   private readonly usernameRequired: Locator;
   private readonly passwordRequired: Locator;
   private readonly loginErrorMessage: Locator;
@@ -12,6 +13,7 @@ export class LoginPage {
     this.usernameInput = page.locator("//input[@formcontrolname='username']");
     this.passwordInput = page.locator("//input[@formcontrolname='password']");
     this.loginButton = page.locator('button.submit');
+    this.forgotPasswordLink = page.getByText('Forgot Password ?');
     this.usernameRequired = page.locator("//span[contains(text(),'Username is required')]");
     this.passwordRequired = page.locator("//span[contains(text(),'Password is required')]");
     this.loginErrorMessage = page.locator('[matsnackbarlabel]');
@@ -35,6 +37,10 @@ export class LoginPage {
 
   async clickLoginButton(): Promise<void> {
     await this.loginButton.click();
+  }
+
+  async openForgotPassword(): Promise<void> {
+    await this.forgotPasswordLink.click();
   }
 
   async userLogin(username: string, password: string): Promise<void> {
