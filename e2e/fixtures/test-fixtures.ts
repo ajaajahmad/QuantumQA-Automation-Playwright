@@ -3,12 +3,14 @@ import { CampaignListPage } from '../pages/campaign/campaign-list.page';
 import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
 import { LogoutComponent } from '../pages/components/logout.component';
 import { SideNav } from '../pages/components/side-nav.component';
+import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
 import { readSessionState } from '../utils/auth-state';
 
 type QuantumFixtures = {
   useAuthenticatedSession: boolean;
   loginPage: LoginPage;
+  forgotPasswordPage: ForgotPasswordPage;
   logoutComponent: LogoutComponent;
   sideNav: SideNav;
   campaignListPage: CampaignListPage;
@@ -44,6 +46,9 @@ export const test = base.extend<QuantumFixtures>({
   },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
+  },
+  forgotPasswordPage: async ({ page }, use) => {
+    await use(new ForgotPasswordPage(page));
   },
   logoutComponent: async ({ page }, use) => {
     await use(new LogoutComponent(page));

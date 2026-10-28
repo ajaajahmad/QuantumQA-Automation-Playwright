@@ -11,11 +11,10 @@ type AppConfig = {
 };
 
 const rootDir = path.resolve(__dirname, '../..');
-const localConfigPath = path.join(rootDir, 'config/qa.properties');
-const configPath = firstExistingPath([localConfigPath, path.join(rootDir, 'config/config.example.properties')]);
+const configPath = path.join(rootDir, 'config/qa.properties');
 
-if (configPath !== localConfigPath) {
-  console.warn(`config/qa.properties not found; using placeholder values from ${configPath}`);
+if (!fs.existsSync(configPath)) {
+  throw new Error(`Missing ${configPath}. See the Setup section of the README for its keys.`);
 }
 
 const properties = readProperties(configPath);
@@ -42,16 +41,6 @@ function parseTimeoutSeconds(value: string): number {
   }
 
   return seconds;
-}
-
-function firstExistingPath(paths: string[]): string {
-  const match = paths.find((candidate) => fs.existsSync(candidate));
-
-  if (!match) {
-    throw new Error(`No Playwright config file found. Checked: ${paths.join(', ')}`);
-  }
-
-  return match;
 }
 
 function readProperties(filePath: string): Record<string, string> {

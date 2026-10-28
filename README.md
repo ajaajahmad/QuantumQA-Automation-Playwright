@@ -18,17 +18,29 @@ npm install
 npx playwright install chromium
 ```
 
-Create the two local files from their examples. Both are gitignored, so credentials never get committed.
+Create two local files. Both are gitignored, so credentials never get committed.
 
-```bash
-cp config/config.example.properties config/qa.properties
-cp e2e/test-data/userdata.example.json e2e/test-data/userdata.json
+`config/qa.properties`: the app URL, timeout in seconds, and the SMS/WhatsApp contact list and template names the tests use.
+
+```properties
+app_url=<app-login-url>
+timeout=20
+sms_list_name=<sms-contact-list>
+sms_template_name=<sms-template>
+waba_list_name=<whatsapp-contact-list>
+waba_template_name=<whatsapp-template>
 ```
 
-Then edit them:
+`e2e/test-data/userdata.json`: one or more `{ "username", "password" }` rows. The first row is used to log in for all tests; the login spec runs once per row.
 
-- `config/qa.properties`: the app URL, timeout (seconds), and the SMS/WhatsApp contact list and template names the tests use.
-- `e2e/test-data/userdata.json`: one or more `{ "username", "password" }` rows. The first row is used to log in for all tests; the login spec runs once per row.
+```json
+[
+  { "username": "<username>", "password": "<password>" },
+  { "username": "<forgot-password-username>", "mobileLast4": "<last-4-digits>", "otp": "<otp>" }
+]
+```
+
+The second row is optional and is for the forgot-password spec only: a **dedicated throwaway account**, with `mobileLast4` and `otp` in place of `password` (the last 4 digits of its registered mobile number, and the OTP staging accepts). The login spec and auth setup ignore this row. Without it the forgot-password spec is skipped.
 
 Any property can be overridden with an environment variable: `APP_URL`, `TIMEOUT_SECONDS`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
 
@@ -44,6 +56,8 @@ npm run typecheck           # TypeScript check, no browser
 Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login spec, from a clean browser), then `auth-setup`, which logs in once and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login spec first.
 
 > **Caution:** the SMS campaign spec clicks **Send Now**, so every run sends a real campaign to the configured contact list. Retries are disabled for this spec so a failure can't send a duplicate.
+
+> **Caution:** the forgot-password spec requests 4 OTPs per run, and its happy path resets the account's password to a new random value each time. Never point it at an account anyone uses. The new password is recorded as an annotation in the HTML report.
 
 ## Reports and Debugging
 
