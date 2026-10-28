@@ -1,10 +1,11 @@
-import { test } from '@playwright/test';
-import { LoginPage } from '../pages/login/login.page';
+import { test } from '../fixtures/test-fixtures';
 import { appConfig } from '../utils/config';
 import { saveAuthState } from '../utils/auth-state';
 import { readUserCredentials } from '../utils/test-data';
 
-test('authenticate and persist browser state', async ({ page }) => {
+test.use({ useAuthenticatedSession: false });
+
+test('authenticate and persist browser state', async ({ page, loginPage }) => {
   const [user] = readUserCredentials();
 
   if (!user) {
@@ -13,7 +14,6 @@ test('authenticate and persist browser state', async ({ page }) => {
 
   await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
 
-  const loginPage = new LoginPage(page);
   await loginPage.userLogin(user.username, user.password);
 
   await saveAuthState(page);

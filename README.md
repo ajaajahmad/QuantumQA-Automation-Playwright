@@ -62,7 +62,7 @@ e2e/
   pages/           page objects and shared components
   specs/           test specs
   test-data/       local test data (real files are gitignored)
-  utils/           config, auth state, dates, table helpers
+  utils/           config, auth state, dates, XPath helpers
 playwright.config.ts
 ```
 

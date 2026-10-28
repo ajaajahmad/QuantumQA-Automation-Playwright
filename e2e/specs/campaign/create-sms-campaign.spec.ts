@@ -6,29 +6,23 @@ test.describe('SMS campaign creation', () => {
   // Each run sends a real campaign, so a retry would send a duplicate.
   test.describe.configure({ retries: 0 });
 
-  test('creates an SMS campaign with persisted auth state', async ({ page, smsCampaignPage }) => {
-    const campaignName = appendLocalTimestamp('Test_Camp');
-
+  test('creates an SMS campaign with persisted auth state', async ({
+    page,
+    sideNav,
+    campaignListPage,
+    createSmsCampaignPage,
+  }) => {
     await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
 
-    await smsCampaignPage.clickOnSmsMenu();
-    await smsCampaignPage.clickOnCampaignsSubMenu();
-    await smsCampaignPage.acknowledgeDltPopupWindow();
-    await smsCampaignPage.clickOnCreateCampaignButton();
-    await smsCampaignPage.enterCampaignName(campaignName);
-    await smsCampaignPage.selectCampaignCategory('automation');
-    await smsCampaignPage.selectCampaignType();
-    await smsCampaignPage.clickOnImportContacts();
-    await smsCampaignPage.clickOnListTab();
-    await smsCampaignPage.searchContactList(appConfig.smsListName);
-    await smsCampaignPage.clickOnGoButton();
-    await smsCampaignPage.selectContactList(appConfig.smsListName);
-    await smsCampaignPage.clickOnImportButton();
-    await smsCampaignPage.clickOnChooseTemplate();
-    await smsCampaignPage.searchTemplate(appConfig.smsTemplateName);
-    await smsCampaignPage.selectTemplate(appConfig.smsTemplateName);
-    await smsCampaignPage.clickOnSaveButton();
-    await smsCampaignPage.clickOnSendButton();
-    await smsCampaignPage.clickOnSendNowButton();
+    await sideNav.openSmsCampaigns();
+    await campaignListPage.acknowledgeDltPopupWindow();
+    await campaignListPage.clickOnCreateCampaignButton();
+
+    await createSmsCampaignPage.createAndSend({
+      name: appendLocalTimestamp('Test_Camp'),
+      category: 'automation',
+      listName: appConfig.smsListName,
+      templateName: appConfig.smsTemplateName,
+    });
   });
 });

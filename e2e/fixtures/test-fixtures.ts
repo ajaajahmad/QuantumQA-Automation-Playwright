@@ -1,16 +1,18 @@
 import { test as base } from '@playwright/test';
-import { LoginErrorPage } from '../pages/login/login-error.page';
-import { LoginPage } from '../pages/login/login.page';
-import { SmsCampaignPage } from '../pages/campaign/sms-campaign.page';
+import { CampaignListPage } from '../pages/campaign/campaign-list.page';
+import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
 import { LogoutComponent } from '../pages/components/logout.component';
+import { SideNav } from '../pages/components/side-nav.component';
+import { LoginPage } from '../pages/login/login.page';
 import { readSessionState } from '../utils/auth-state';
 
 type QuantumFixtures = {
   useAuthenticatedSession: boolean;
   loginPage: LoginPage;
-  loginErrorPage: LoginErrorPage;
   logoutComponent: LogoutComponent;
-  smsCampaignPage: SmsCampaignPage;
+  sideNav: SideNav;
+  campaignListPage: CampaignListPage;
+  createSmsCampaignPage: CreateSmsCampaignPage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -43,14 +45,17 @@ export const test = base.extend<QuantumFixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));
   },
-  loginErrorPage: async ({ page }, use) => {
-    await use(new LoginErrorPage(page));
-  },
   logoutComponent: async ({ page }, use) => {
     await use(new LogoutComponent(page));
   },
-  smsCampaignPage: async ({ page }, use) => {
-    await use(new SmsCampaignPage(page));
+  sideNav: async ({ page }, use) => {
+    await use(new SideNav(page));
+  },
+  campaignListPage: async ({ page }, use) => {
+    await use(new CampaignListPage(page));
+  },
+  createSmsCampaignPage: async ({ page }, use) => {
+    await use(new CreateSmsCampaignPage(page));
   },
 });
 

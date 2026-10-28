@@ -22,26 +22,26 @@ test.describe('Login', () => {
 });
 
 test.describe('Login validation', () => {
-  test('shows an error when username is empty', async ({ loginPage, loginErrorPage }) => {
+  test('shows an error when username is empty', async ({ loginPage }) => {
     await loginPage.enterPassword('any-password');
     await loginPage.clickLoginButton();
 
-    await loginErrorPage.expectEmptyUsernameError();
+    await loginPage.expectEmptyUsernameError();
   });
 
-  test('shows an error when password is empty', async ({ loginPage, loginErrorPage }) => {
+  test('shows an error when password is empty', async ({ loginPage }) => {
     await loginPage.enterUsername('any.user@example.com');
     await loginPage.clickLoginButton();
 
-    await loginErrorPage.expectEmptyPasswordError();
+    await loginPage.expectEmptyPasswordError();
   });
 
   // Uses a non-existent account so repeated runs can't lock out a real user.
-  test('shows an error for invalid credentials', async ({ loginPage, loginErrorPage }) => {
+  test('shows an error for invalid credentials', async ({ loginPage }) => {
     await loginPage.enterUsername('invalid.user@example.com');
     await loginPage.enterPassword('wrong-password');
     await loginPage.clickLoginButton();
 
-    await loginErrorPage.expectInvalidCredentialsError();
+    await loginPage.expectInvalidCredentialsError();
   });
 });

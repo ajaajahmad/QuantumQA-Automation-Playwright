@@ -1,13 +1,12 @@
 import type { Locator, Page } from '@playwright/test';
-import { BasePage, xpathLiteral } from '../base.page';
+import { xpathLiteral } from '../../utils/xpath';
 
-export class CampaignCommonComponent extends BasePage {
+export class CampaignCommonComponent {
   private readonly campaignNameInput: Locator;
   private readonly categoryDropdown: Locator;
   private readonly categorySearchInput: Locator;
 
-  constructor(page: Page) {
-    super(page);
+  constructor(private readonly page: Page) {
     this.campaignNameInput = page.locator("//div[contains(@class,'campaign-name')]//input[@type='text']");
     this.categoryDropdown = page.locator(
       "//label[contains(normalize-space(.),'Campaign Category')]/following-sibling::app-custom-select-with-create//div[contains(@class,'ng-select-container')]",
@@ -16,12 +15,12 @@ export class CampaignCommonComponent extends BasePage {
   }
 
   async enterCampaignName(campaignName: string): Promise<void> {
-    await this.type(this.campaignNameInput, campaignName);
+    await this.campaignNameInput.fill(campaignName);
   }
 
   async selectCampaignCategory(categoryText: string): Promise<void> {
-    await this.click(this.categoryDropdown);
-    await this.type(this.categorySearchInput, categoryText);
+    await this.categoryDropdown.click();
+    await this.categorySearchInput.fill(categoryText);
     await this.page
       .locator(`//ng-dropdown-panel//div[@role='option']//span[@title=${xpathLiteral(categoryText)}]`)
       .click();

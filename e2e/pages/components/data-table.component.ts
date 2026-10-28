@@ -1,11 +1,11 @@
-import { expect, type Page } from '@playwright/test';
-import { xpathLiteral } from '../pages/base.page';
+import { expect, type Locator, type Page } from '@playwright/test';
+import { xpathLiteral } from '../../utils/xpath';
 
-export class TableSelectionManager {
+export class DataTable {
   constructor(private readonly page: Page) {}
 
-  async selectContactListByName(listName: string): Promise<void> {
-    const row = this.rowBySecondCellText(listName);
+  async checkRowByName(name: string): Promise<void> {
+    const row = this.rowBySecondCellText(name);
     const checkboxInput = row.locator("mat-checkbox input[type='checkbox']");
 
     await row.waitFor({ state: 'visible' });
@@ -15,8 +15,8 @@ export class TableSelectionManager {
     await expect(checkbox).toHaveClass(/mat-mdc-checkbox-checked/);
   }
 
-  async selectTemplateByName(templateName: string): Promise<void> {
-    const row = this.rowBySecondCellText(templateName);
+  async chooseRowByName(name: string): Promise<void> {
+    const row = this.rowBySecondCellText(name);
     const radio = row.locator("input[type='radio']");
 
     await row.waitFor({ state: 'visible' });
@@ -25,7 +25,7 @@ export class TableSelectionManager {
   }
 
   // The lists search API can return the same row twice, so take the first match.
-  private rowBySecondCellText(text: string) {
+  private rowBySecondCellText(text: string): Locator {
     return this.page
       .locator(
         `//tbody//tr[.//td[2]//span[contains(@class,'table-data-row') and normalize-space()=${xpathLiteral(text)}]]`,
