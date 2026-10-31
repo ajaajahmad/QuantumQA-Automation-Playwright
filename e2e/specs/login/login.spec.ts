@@ -13,7 +13,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('Login', () => {
   for (const [index, user] of users.entries()) {
     test(`logs in and out with valid credential row ${index + 1}`, async ({ loginPage, logoutComponent }) => {
-      await loginPage.userLogin(user.username, user.password);
+      await loginPage.userLogin(user.username, user.password, user.otp);
 
       await logoutComponent.userLogout();
       await loginPage.expectDisplayed();

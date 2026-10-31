@@ -28,11 +28,6 @@ export class ForgotPasswordPage {
     this.errorMessage = page.locator('[matsnackbarlabel]');
   }
 
-  async resetPassword(account: ForgotPasswordAccount, newPassword: string): Promise<void> {
-    await this.reachResetPasswordScreen(account);
-    await this.resetPasswordPage.reset(newPassword);
-  }
-
   async reachResetPasswordScreen(account: ForgotPasswordAccount): Promise<void> {
     await this.requestOtp(account.username, account.mobileLast4);
     await this.verifyOtpPage.expectDisplayed();

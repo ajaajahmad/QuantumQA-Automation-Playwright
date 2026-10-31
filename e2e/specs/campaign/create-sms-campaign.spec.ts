@@ -3,7 +3,7 @@ import { appConfig } from '../../utils/config';
 import { appendLocalTimestamp } from '../../utils/date-time';
 
 test.describe('SMS campaign creation', () => {
-  // Each run sends a real campaign, so a retry would send a duplicate.
+  // Each run creates a campaign on staging (SMS delivery is faked there), so a retry would create a duplicate.
   test.describe.configure({ retries: 0 });
 
   test('creates an SMS campaign with persisted auth state', async ({
