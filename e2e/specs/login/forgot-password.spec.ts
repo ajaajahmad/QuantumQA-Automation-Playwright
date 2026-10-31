@@ -2,18 +2,14 @@ import { test } from '../../fixtures/test-fixtures';
 import { appConfig } from '../../utils/config';
 import { readForgotPasswordAccount } from '../../utils/test-data';
 
-// A dedicated throwaway account: the happy path changes its password on every run.
+// This is the same account auth setup logs in with, so every password these tests submit
+// is either rejected by the app or the current one: userdata.json can never go stale.
 const account = readForgotPasswordAccount();
 
-// Fresh each run, so the test never needs the old password and can't hit a reuse rule.
-function uniquePassword(): string {
-  return `Qa#${Date.now().toString().slice(-8)}`;
-}
-
-test.use({ storageState: { cookies: [], origins: [] }, useAuthenticatedSession: false });
+test.use({ useAuthenticatedSession: false });
 
 test.describe('Forgot password', () => {
-  test.skip(!account, 'Add a forgot-password row to e2e/test-data/userdata.json to run these tests.');
+  test.skip(!account, 'Add mobile_last_four_digits and one_time_password to a userdata.json row to run these tests.');
 
   test.beforeEach(async ({ page, loginPage, forgotPasswordPage }) => {
     await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
@@ -45,6 +41,7 @@ test.describe('Forgot password', () => {
     await forgotPasswordPage.verifyOtpPage.expectInvalidOtpError();
   });
 
+  // The app rejects this before submitting, so the password stays unchanged.
   test('rejects a password that is too short', async ({ forgotPasswordPage }) => {
     const { resetPasswordPage } = forgotPasswordPage;
 
@@ -56,12 +53,12 @@ test.describe('Forgot password', () => {
     await resetPasswordPage.expectDisplayed();
   });
 
-  // Clicks Reset, which is safe only because the account is a throwaway: no test needs its current password.
+  // New Password is the current one, so even if the app submitted it, nothing would change.
   test('rejects a confirm password that does not match', async ({ forgotPasswordPage }) => {
     const { resetPasswordPage } = forgotPasswordPage;
 
     await forgotPasswordPage.reachResetPasswordScreen(account!);
-    await resetPasswordPage.enterPasswords('Qwer#5678', 'Qwer#5679');
+    await resetPasswordPage.enterPasswords(account!.password, `${account!.password}x`);
     await resetPasswordPage.expectConfirmPasswordFlagged();
     await resetPasswordPage.clickReset();
 
@@ -69,18 +66,16 @@ test.describe('Forgot password', () => {
     await resetPasswordPage.expectDisplayed();
   });
 
-  test.describe('happy path', () => {
-    // A retry would reset the password again.
-    test.describe.configure({ retries: 0 });
+  // Staging keeps the last 3 passwords, so resetting to the current one is refused and
+  // nothing changes. A successful reset needs a throwaway account, since this one is shared.
+  test('rejects reusing a recent password', async ({ forgotPasswordPage }) => {
+    const { resetPasswordPage } = forgotPasswordPage;
 
-    test('resets the password and logs in with the new one', async ({ page, loginPage, forgotPasswordPage }) => {
-      const newPassword = uniquePassword();
-      test.info().annotations.push({ type: 'new password', description: newPassword });
+    await forgotPasswordPage.reachResetPasswordScreen(account!);
+    await resetPasswordPage.enterPasswords(account!.password, account!.password);
+    await resetPasswordPage.clickReset();
 
-      await forgotPasswordPage.resetPassword(account!, newPassword);
-
-      await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
-      await loginPage.userLogin(account!.username, newPassword);
-    });
+    await resetPasswordPage.expectPasswordReuseError();
+    await resetPasswordPage.expectDisplayed();
   });
 });

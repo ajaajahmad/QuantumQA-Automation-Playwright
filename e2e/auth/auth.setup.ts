@@ -14,7 +14,7 @@ test('authenticate and persist browser state', async ({ page, loginPage }) => {
 
   await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
 
-  await loginPage.userLogin(user.username, user.password);
+  await loginPage.userLogin(user.username, user.password, user.otp);
 
   await saveAuthState(page);
 });

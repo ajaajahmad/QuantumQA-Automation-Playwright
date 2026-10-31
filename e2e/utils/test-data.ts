@@ -4,17 +4,21 @@ import path from 'node:path';
 export type UserCredentials = {
   username: string;
   password: string;
+  otp?: string;
 };
 
-export type ForgotPasswordAccount = {
-  username: string;
+export type ForgotPasswordAccount = UserCredentials & {
   mobileLast4: string;
   otp: string;
 };
 
-// A row with mobileLast4 is the forgot-password account. It has no fixed password,
-// because the forgot-password spec resets it on every run.
-type UserDataRow = Partial<UserCredentials & ForgotPasswordAccount>;
+// Mirrors the keys in userdata.json. The forgot-password fields are optional per row.
+type UserDataRow = {
+  username?: string;
+  password?: string;
+  mobile_last_four_digits?: string;
+  one_time_password?: string;
+};
 
 const rootDir = path.resolve(__dirname, '../..');
 const dataPath = path.join(rootDir, 'e2e/test-data/userdata.json');
@@ -27,15 +31,10 @@ function readUserDataRows(): UserDataRow[] {
   return JSON.parse(fs.readFileSync(dataPath, 'utf8')) as UserDataRow[];
 }
 
-function isForgotPasswordRow(row: UserDataRow): boolean {
-  return row.mobileLast4 !== undefined;
-}
-
 export function readUserCredentials(): UserCredentials[] {
-  const validRows = readUserDataRows().filter(
-    (row): row is UserCredentials =>
-      !isForgotPasswordRow(row) && Boolean(row.username?.trim() && row.password?.trim()),
-  );
+  const validRows = readUserDataRows()
+    .filter((row) => row.username?.trim() && row.password?.trim())
+    .map((row) => ({ username: row.username!, password: row.password!, otp: row.one_time_password }));
 
   if (validRows.length === 0) {
     throw new Error(`No valid user credentials found in ${dataPath}`);
@@ -44,19 +43,29 @@ export function readUserCredentials(): UserCredentials[] {
   return validRows;
 }
 
-// Optional: without a forgot-password row the forgot-password spec is skipped, not failed.
+// Optional: without a row that has the forgot-password fields, that spec is skipped, not failed.
 export function readForgotPasswordAccount(): ForgotPasswordAccount | undefined {
-  const rows = readUserDataRows().filter(isForgotPasswordRow);
+  const row = readUserDataRows().find((candidate) => candidate.mobile_last_four_digits !== undefined);
 
-  if (rows.length === 0) {
+  if (!row) {
     return undefined;
   }
 
-  const [account] = rows;
-
-  if (rows.length > 1 || !account.username?.trim() || !/^\d{4}$/.test(account.mobileLast4 ?? '') || !account.otp?.trim()) {
-    throw new Error(`${dataPath} needs exactly one forgot-password row with a username, 4-digit mobileLast4 and otp.`);
+  if (
+    !row.username?.trim() ||
+    !row.password?.trim() ||
+    !/^\d{4}$/.test(row.mobile_last_four_digits ?? '') ||
+    !row.one_time_password?.trim()
+  ) {
+    throw new Error(
+      `${dataPath}: the forgot-password row needs username, password, a 4-digit mobile_last_four_digits and one_time_password.`,
+    );
   }
 
-  return account as ForgotPasswordAccount;
+  return {
+    username: row.username,
+    password: row.password,
+    mobileLast4: row.mobile_last_four_digits!,
+    otp: row.one_time_password,
+  };
 }

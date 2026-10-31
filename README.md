@@ -31,16 +31,20 @@ waba_list_name=<whatsapp-contact-list>
 waba_template_name=<whatsapp-template>
 ```
 
-`e2e/test-data/userdata.json`: one or more `{ "username", "password" }` rows. The first row is used to log in for all tests; the login spec runs once per row.
+`e2e/test-data/userdata.json`: one or more user rows. The first row is used to log in for all tests; the login spec runs once per row.
 
 ```json
 [
-  { "username": "<username>", "password": "<password>" },
-  { "username": "<forgot-password-username>", "mobileLast4": "<last-4-digits>", "otp": "<otp>" }
+  {
+    "username": "<username>",
+    "password": "<password>",
+    "mobile_last_four_digits": "<last-4-digits>",
+    "one_time_password": "<otp>"
+  }
 ]
 ```
 
-The second row is optional and is for the forgot-password spec only: a **dedicated throwaway account**, with `mobileLast4` and `otp` in place of `password` (the last 4 digits of its registered mobile number, and the OTP staging accepts). The login spec and auth setup ignore this row. Without it the forgot-password spec is skipped.
+`one_time_password` is the static OTP staging accepts. It is needed for any user with two-factor authentication on, and by the forgot-password spec. `mobile_last_four_digits` is the last 4 digits of the account's registered mobile number, used only by the forgot-password spec. That spec uses the first row that has both, and is skipped if none does.
 
 Any property can be overridden with an environment variable: `APP_URL`, `TIMEOUT_SECONDS`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
 
@@ -53,11 +57,11 @@ npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
 
-Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login spec, from a clean browser), then `auth-setup`, which logs in once and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login spec first.
+Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login and forgot-password specs, from a clean browser), then `auth-setup`, which logs in once and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login spec first.
 
-> **Caution:** the SMS campaign spec clicks **Send Now**, so every run sends a real campaign to the configured contact list. Retries are disabled for this spec so a failure can't send a duplicate.
+> **Note:** the SMS campaign spec clicks **Send Now**, so every run creates a campaign on staging. Staging uses a fake SMS setup, so no real messages are delivered. Retries are disabled for this spec so a failure can't create a duplicate campaign.
 
-> **Caution:** the forgot-password spec requests 4 OTPs per run, and its happy path resets the account's password to a new random value each time. Never point it at an account anyone uses. The new password is recorded as an annotation in the HTML report.
+> **Caution:** the forgot-password spec requests 4 OTPs per run to the account's registered mobile. It never changes the password: every password it submits is either rejected by the app or the current one, and staging refuses to reuse any of the last 3. Testing a successful reset needs a separate throwaway account.
 
 ## Reports and Debugging
 
@@ -82,7 +86,7 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid, empty-field, and invalid-credential checks) and SMS campaign creation. Still to migrate from the Java suite:
+Ported so far: login (valid, empty-field, and invalid-credential checks), forgot password, and SMS campaign creation. Still to migrate from the Java suite:
 
 1. SMS MIS summary and advanced pages
 2. WhatsApp campaign and MIS pages
