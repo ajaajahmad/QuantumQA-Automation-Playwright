@@ -47,6 +47,11 @@ export class ResetPasswordPage {
     await expect(this.mismatchError).toBeVisible();
   }
 
+  // The app leaves this screen only when the reset is accepted; a rejection keeps it open.
+  async expectResetAccepted(): Promise<void> {
+    await expect(this.heading).toBeHidden();
+  }
+
   async expectPasswordReuseError(): Promise<void> {
     await expect(this.errorMessage).toHaveText('Your new password cannot be same as last 3 passwords');
   }

@@ -57,11 +57,15 @@ npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
 
-Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login and forgot-password specs, from a clean browser), then `auth-setup`, which logs in once and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login spec first.
+Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login and forgot-password specs, from a clean browser), then `password-reset`, which changes the account's password, then `auth-setup`, which logs in once with the new password and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login specs and the password reset first. Add `--project=chromium --no-deps` to reuse the saved session instead.
 
 > **Note:** the SMS campaign spec clicks **Send Now**, so every run creates a campaign on staging. Staging uses a fake SMS setup, so no real messages are delivered. Retries are disabled for this spec so a failure can't create a duplicate campaign.
 
-> **Caution:** the forgot-password spec requests 4 OTPs per run to the account's registered mobile. It never changes the password: every password it submits is either rejected by the app or the current one, and staging refuses to reuse any of the last 3. Testing a successful reset needs a separate throwaway account.
+> **Caution:** every full run changes the password of the forgot-password account, which is also the account all tests log in with. The `password-reset` spec generates a new password with the same length and character types as the current one, resets it through forgot password, and logs in with it. Only after that login succeeds does it write the new password into `userdata.json`. Anyone else using this account needs the new password from that file.
+>
+> Just before clicking Reset, the new password is saved to `e2e/test-data/pending-password.json` (gitignored). If any later step fails, `userdata.json` is left unchanged and the pending file stays, because staging may already have accepted the new password. The next run then stops until you log in with the pending password, copy it into `userdata.json` if it works, and delete the file.
+>
+> The forgot-password negative specs never change the password. Together with the reset, a run requests 5 OTPs to the account's registered mobile.
 
 ## Reports and Debugging
 
@@ -80,13 +84,13 @@ e2e/
   pages/           page objects and shared components
   specs/           test specs
   test-data/       local test data (real files are gitignored)
-  utils/           config, auth state, dates, XPath helpers
+  utils/           config, auth state, test data, passwords, dates, XPath helpers
 playwright.config.ts
 ```
 
 ## Migration Status
 
-Ported so far: login (valid, empty-field, and invalid-credential checks), forgot password, and SMS campaign creation. Still to migrate from the Java suite:
+Ported so far: login (valid, empty-field, and invalid-credential checks), forgot password (including a real password reset), and SMS campaign creation. Still to migrate from the Java suite:
 
 1. SMS MIS summary and advanced pages
 2. WhatsApp campaign and MIS pages

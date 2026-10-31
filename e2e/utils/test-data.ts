@@ -20,8 +20,14 @@ type UserDataRow = {
   one_time_password?: string;
 };
 
+type PendingPassword = {
+  username: string;
+  password: string;
+};
+
 const rootDir = path.resolve(__dirname, '../..');
 const dataPath = path.join(rootDir, 'e2e/test-data/userdata.json');
+export const pendingPasswordPath = path.join(rootDir, 'e2e/test-data/pending-password.json');
 
 function readUserDataRows(): UserDataRow[] {
   if (!fs.existsSync(dataPath)) {
@@ -68,4 +74,41 @@ export function readForgotPasswordAccount(): ForgotPasswordAccount | undefined {
     mobileLast4: row.mobile_last_four_digits!,
     otp: row.one_time_password,
   };
+}
+
+// Writes to a temp file and renames it, so an interrupted write can't leave userdata.json half written.
+function writeJsonAtomically(filePath: string, data: unknown): void {
+  const tempPath = `${filePath}.tmp`;
+  fs.writeFileSync(tempPath, `${JSON.stringify(data, null, 2)}\n`, 'utf8');
+  fs.renameSync(tempPath, filePath);
+}
+
+// Changes only the password of the matching row and keeps every other row and key.
+export function updateUserPassword(username: string, newPassword: string): void {
+  const rows = readUserDataRows();
+  const row = rows.find((candidate) => candidate.username === username);
+
+  if (!row) {
+    throw new Error(`${dataPath}: no row for the user whose password was reset.`);
+  }
+
+  row.password = newPassword;
+  writeJsonAtomically(dataPath, rows);
+}
+
+// A pending password was submitted to the app but not yet confirmed by logging in with it.
+export function readPendingPassword(): PendingPassword | undefined {
+  if (!fs.existsSync(pendingPasswordPath)) {
+    return undefined;
+  }
+
+  return JSON.parse(fs.readFileSync(pendingPasswordPath, 'utf8')) as PendingPassword;
+}
+
+export function savePendingPassword(pending: PendingPassword): void {
+  writeJsonAtomically(pendingPasswordPath, pending);
+}
+
+export function clearPendingPassword(): void {
+  fs.rmSync(pendingPasswordPath, { force: true });
 }

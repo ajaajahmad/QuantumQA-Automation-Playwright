@@ -67,7 +67,7 @@ test.describe('Forgot password', () => {
   });
 
   // Staging keeps the last 3 passwords, so resetting to the current one is refused and
-  // nothing changes. A successful reset needs a throwaway account, since this one is shared.
+  // nothing changes. The successful reset is in specs/password-reset, which runs after these.
   test('rejects reusing a recent password', async ({ forgotPasswordPage }) => {
     const { resetPasswordPage } = forgotPasswordPage;
 

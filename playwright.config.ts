@@ -39,16 +39,23 @@ export default defineConfig({
       name: 'login',
       testMatch: /specs\/login\/.*\.spec\.ts/,
     },
+    // Changes the shared account's password, so nothing else may log in with it meanwhile.
+    // auth-setup runs after it and reads the new password from userdata.json.
+    {
+      name: 'password-reset',
+      dependencies: ['login'],
+      testMatch: /specs\/password-reset\/.*\.spec\.ts/,
+    },
     {
       name: 'auth-setup',
-      dependencies: ['login'],
+      dependencies: ['password-reset'],
       testMatch: /auth\/.*\.setup\.ts/,
     },
     {
       name: browserName,
       dependencies: ['auth-setup'],
       testMatch: /specs\/.*\.spec\.ts/,
-      testIgnore: /specs\/login\//,
+      testIgnore: /specs\/(login|password-reset)\//,
       use: {
         storageState: storageStatePath,
       },
