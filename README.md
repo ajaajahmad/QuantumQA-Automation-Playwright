@@ -20,11 +20,14 @@ npx playwright install chromium
 
 Create two local files. Both are gitignored, so credentials never get committed.
 
-`config/qa.properties`: the app URL, timeout in seconds, and the SMS/WhatsApp contact list and template names the tests use.
+`config/qa.properties`: the app URL, the API host the app calls (`api_url`, required), timeout in seconds, the campaign category, and the SMS/WhatsApp contact list and template names the tests use.
 
 ```properties
 app_url=<app-login-url>
+api_url=<api-host-the-app-calls>
 timeout=20
+campaign_category=<campaign-category>
+sms_sender_id=<sms-sender-id>
 sms_list_name=<sms-contact-list>
 sms_template_name=<sms-template>
 waba_list_name=<whatsapp-contact-list>
@@ -46,26 +49,35 @@ waba_template_name=<whatsapp-template>
 
 `one_time_password` is the static OTP staging accepts. It is needed for any user with two-factor authentication on, and by the forgot-password spec. `mobile_last_four_digits` is the last 4 digits of the account's registered mobile number, used only by the forgot-password spec. That spec uses the first row that has both, and is skipped if none does.
 
-Any property can be overridden with an environment variable: `APP_URL`, `TIMEOUT_SECONDS`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
+`campaign_category` defaults to `automation` when empty or missing. If the account has no category with that name, the SMS campaign spec creates it from the dropdown's Create New box, and the spec then writes the name into `qa.properties`.
+
+`sms_sender_id` is optional. The template picker only lists templates registered under the selected sender ID, so set it to the sender of `sms_template_name`. When it's empty, the form keeps whichever sender it selects by default.
+
+Any property can be overridden with an environment variable: `APP_URL`, `API_URL`, `TIMEOUT_SECONDS`, `CAMPAIGN_CATEGORY`, `SMS_SENDER_ID`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
 
 ## Running Tests
 
 ```bash
 npm test                    # all specs
 npm run test:sms-campaign   # SMS campaign spec only
+npm run test:password-reset # change the account password (on demand only)
 npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
 
-Tests run in Chromium: headed locally, headless when `CI` is set. Projects run in order: `login` (the login and forgot-password specs, from a clean browser), then `password-reset`, which changes the account's password, then `auth-setup`, which logs in once with the new password and saves the session to `artifacts/.auth/`, then `chromium`, which runs every other spec with that session. Because of these dependencies, `npm run auth:setup` and `npm run test:sms-campaign` also run the login specs and the password reset first. Add `--project=chromium --no-deps` to reuse the saved session instead.
+Tests run in Chromium: headed locally, headless when `CI` is set.
+
+Login happens once and the access token is reused across runs. `auth-setup` checks the token saved in `artifacts/.auth/` with one API call and logs in only if the API rejects it. Tokens last about an hour, and a password reset revokes them. `chromium` then runs every other spec with that saved session. Specs that call the API directly use the `api` fixture, which sends the saved token as a Bearer header, e.g. `await api.get('/api/v1/settings')`.
+
+The `login` project (the login and forgot-password specs) runs alongside, from a clean browser. Those specs log in because that is what they test, and staging keeps other sessions alive when they log out.
 
 > **Note:** the SMS campaign spec clicks **Send Now**, so every run creates a campaign on staging. Staging uses a fake SMS setup, so no real messages are delivered. Retries are disabled for this spec so a failure can't create a duplicate campaign.
 
-> **Caution:** every full run changes the password of the forgot-password account, which is also the account all tests log in with. The `password-reset` spec generates a new password with the same length and character types as the current one, resets it through forgot password, and logs in with it. Only after that login succeeds does it write the new password into `userdata.json`. Anyone else using this account needs the new password from that file.
+> **Caution:** `npm run test:password-reset` changes the password of the forgot-password account, which is also the account all tests log in with. It never runs as part of `npm test`, because the reset revokes every token, including the saved one. Run it on its own, not while other tests are running. The spec generates a new password with the same length and character types as the current one, resets it through forgot password, and logs in with it. Only after that login succeeds does it write the new password into `userdata.json` and save the new session, so the next run reuses that token instead of logging in.
 >
-> Just before clicking Reset, the new password is saved to `e2e/test-data/pending-password.json` (gitignored). If any later step fails, `userdata.json` is left unchanged and the pending file stays, because staging may already have accepted the new password. The next run then stops until you log in with the pending password, copy it into `userdata.json` if it works, and delete the file.
+> Just before clicking Reset, the new password is saved to `e2e/test-data/pending-password.json` (gitignored). If any later step fails, `userdata.json` is left unchanged and the pending file stays, because staging may already have accepted the new password. The next reset then stops until you log in with the pending password, copy it into `userdata.json` if it works, and delete the file.
 >
-> The forgot-password negative specs never change the password. Together with the reset, a run requests 5 OTPs to the account's registered mobile.
+> The forgot-password negative specs never change the password. They request 4 OTPs per run to the account's registered mobile, and the reset requests one more.
 
 ## Reports and Debugging
 

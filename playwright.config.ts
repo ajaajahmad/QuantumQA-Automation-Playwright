@@ -33,22 +33,25 @@ export default defineConfig({
     navigationTimeout: appConfig.timeoutMs,
   },
   projects: [
-    // Runs before auth-setup: logging out here can end other sessions for the same
-    // user, so it must finish before the shared session is saved.
+    // Logs in and out in its own browser; staging keeps other sessions alive, so this
+    // runs alongside the token-based projects.
     {
       name: 'login',
       testMatch: /specs\/login\/.*\.spec\.ts/,
     },
-    // Changes the shared account's password, so nothing else may log in with it meanwhile.
-    // auth-setup runs after it and reads the new password from userdata.json.
-    {
-      name: 'password-reset',
-      dependencies: ['login'],
-      testMatch: /specs\/password-reset\/.*\.spec\.ts/,
-    },
+    // A password reset revokes every token, including the saved one, so this project
+    // exists only when asked for: npm run test:password-reset.
+    ...(process.env.RESET_PASSWORD === '1'
+      ? [
+          {
+            name: 'password-reset',
+            testMatch: /specs\/password-reset\/.*\.spec\.ts/,
+          },
+        ]
+      : []),
+    // Reuses the saved access token while the API accepts it; logs in only when it doesn't.
     {
       name: 'auth-setup',
-      dependencies: ['password-reset'],
       testMatch: /auth\/.*\.setup\.ts/,
     },
     {

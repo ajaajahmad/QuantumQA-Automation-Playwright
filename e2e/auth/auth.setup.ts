@@ -1,11 +1,16 @@
 import { test } from '../fixtures/test-fixtures';
 import { appConfig } from '../utils/config';
-import { saveAuthState } from '../utils/auth-state';
+import { isSavedTokenValid, saveAuthState } from '../utils/auth-state';
 import { readUserCredentials } from '../utils/test-data';
 
 test.use({ useAuthenticatedSession: false });
 
-test('authenticate and persist browser state', async ({ page, loginPage }) => {
+test('authenticate and persist browser state', async ({ page, request, loginPage }) => {
+  if (await isSavedTokenValid(request)) {
+    test.info().annotations.push({ type: 'auth', description: 'Reused the saved access token.' });
+    return;
+  }
+
   const [user] = readUserCredentials();
 
   if (!user) {
