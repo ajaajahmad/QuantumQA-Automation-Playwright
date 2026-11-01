@@ -1,14 +1,16 @@
-import { test as base } from '@playwright/test';
+import { test as base, type APIRequestContext } from '@playwright/test';
 import { CampaignListPage } from '../pages/campaign/campaign-list.page';
 import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
 import { LogoutComponent } from '../pages/components/logout.component';
 import { SideNav } from '../pages/components/side-nav.component';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
-import { readSessionState } from '../utils/auth-state';
+import { readAccessToken, readSessionState } from '../utils/auth-state';
+import { appConfig } from '../utils/config';
 
 type QuantumFixtures = {
   useAuthenticatedSession: boolean;
+  api: APIRequestContext;
   loginPage: LoginPage;
   forgotPasswordPage: ForgotPasswordPage;
   logoutComponent: LogoutComponent;
@@ -43,6 +45,22 @@ export const test = base.extend<QuantumFixtures>({
     }
 
     await use(context);
+  },
+  // Calls the API with the token auth setup saved, e.g. api.get('/api/v1/settings').
+  api: async ({ playwright }, use) => {
+    const token = readAccessToken();
+
+    if (!token) {
+      throw new Error('No saved access token. Run the auth-setup project first.');
+    }
+
+    const api = await playwright.request.newContext({
+      baseURL: appConfig.apiUrl,
+      extraHTTPHeaders: { Authorization: `Bearer ${token}` },
+    });
+
+    await use(api);
+    await api.dispose();
   },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page));

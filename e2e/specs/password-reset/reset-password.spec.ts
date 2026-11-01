@@ -1,4 +1,5 @@
 import { test } from '../../fixtures/test-fixtures';
+import { saveAuthState } from '../../utils/auth-state';
 import { appConfig } from '../../utils/config';
 import { generateSimilarPassword } from '../../utils/password';
 import {
@@ -10,8 +11,9 @@ import {
   updateUserPassword,
 } from '../../utils/test-data';
 
-// Changes the real password of the account every other test logs in with, so this runs in
-// its own project: after the login specs and before auth setup reads userdata.json.
+// Changes the real password of the account every other test logs in with, and the app revokes
+// every token when that happens. So it runs only on demand (npm run test:password-reset),
+// never alongside other tests, and saves the new session for the next run to reuse.
 const account = readForgotPasswordAccount();
 
 test.use({ useAuthenticatedSession: false });
@@ -52,5 +54,6 @@ test.describe('Password reset', () => {
 
     updateUserPassword(account!.username, newPassword);
     clearPendingPassword();
+    await saveAuthState(page);
   });
 });

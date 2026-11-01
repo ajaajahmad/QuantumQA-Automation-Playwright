@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { Page } from '@playwright/test';
+import type { APIRequestContext, Page } from '@playwright/test';
+import { appConfig } from './config';
 
 export type StorageEntry = {
   key: string;
@@ -43,4 +44,32 @@ export function readSessionState(): SessionState | undefined {
   }
 
   return JSON.parse(fs.readFileSync(sessionStatePath, 'utf8')) as SessionState;
+}
+
+// The app keeps its API token in this cookie and sends it as a Bearer header.
+export function readAccessToken(): string | undefined {
+  if (!fs.existsSync(storageStatePath)) {
+    return undefined;
+  }
+
+  const { cookies } = JSON.parse(fs.readFileSync(storageStatePath, 'utf8')) as {
+    cookies: { name: string; value: string }[];
+  };
+
+  return cookies.find((cookie) => cookie.name === 'access-token')?.value;
+}
+
+// Tokens expire after about an hour and a password reset revokes them, so ask the API.
+export async function isSavedTokenValid(request: APIRequestContext): Promise<boolean> {
+  const token = readAccessToken();
+
+  if (!token || !readSessionState()) {
+    return false;
+  }
+
+  const response = await request.get(`${appConfig.apiUrl}/api/v1/users/user-currency`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+
+  return response.ok();
 }

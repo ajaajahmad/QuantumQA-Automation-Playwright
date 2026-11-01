@@ -11,6 +11,7 @@
     "test:ui": "playwright test --ui",
     "auth:setup": "playwright test --project=auth-setup",
     "test:sms-campaign": "playwright test e2e/specs/campaign/create-sms-campaign.spec.ts",
+    "test:password-reset": "RESET_PASSWORD=1 playwright test --project=password-reset",
     "codegen": "playwright codegen",
     "typecheck": "tsc --noEmit"
   },

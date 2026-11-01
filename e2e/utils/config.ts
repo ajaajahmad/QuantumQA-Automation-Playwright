@@ -3,7 +3,10 @@ import path from 'node:path';
 
 type AppConfig = {
   appUrl: string;
+  apiUrl: string;
   timeoutMs: number;
+  campaignCategory: string;
+  smsSenderId: string;
   smsListName: string;
   smsTemplateName: string;
   wabaListName: string;
@@ -21,7 +24,10 @@ const properties = readProperties(configPath);
 
 export const appConfig: AppConfig = {
   appUrl: getConfigValue('app_url', 'APP_URL', 'https://example.com'),
+  apiUrl: getRequiredConfigValue('api_url', 'API_URL'),
   timeoutMs: parseTimeoutSeconds(getConfigValue('timeout', 'TIMEOUT_SECONDS', '30')) * 1000,
+  campaignCategory: getConfigValue('campaign_category', 'CAMPAIGN_CATEGORY', 'automation'),
+  smsSenderId: getConfigValue('sms_sender_id', 'SMS_SENDER_ID', ''),
   smsListName: getConfigValue('sms_list_name', 'SMS_LIST_NAME', 'automation_sms'),
   smsTemplateName: getConfigValue('sms_template_name', 'SMS_TEMPLATE_NAME', 'test_template'),
   wabaListName: getConfigValue('waba_list_name', 'WABA_LIST_NAME', 'automation_waba'),
@@ -31,6 +37,38 @@ export const appConfig: AppConfig = {
 // Empty values are treated as unset so `APP_URL=` doesn't blank out the file value.
 function getConfigValue(propertyKey: string, envKey: string, fallback: string): string {
   return process.env[envKey] || properties[propertyKey] || fallback;
+}
+
+// No fallback: a wrong API host would make every saved token look expired.
+function getRequiredConfigValue(propertyKey: string, envKey: string): string {
+  const value = process.env[envKey] || properties[propertyKey];
+
+  if (!value) {
+    throw new Error(`Missing ${propertyKey} in ${configPath}. See the Setup section of the README.`);
+  }
+
+  return value.replace(/\/+$/, '');
+}
+
+// Sets one key in qa.properties, replacing its line or appending it, and keeps every other line as is.
+export function saveConfigValue(propertyKey: string, value: string): void {
+  if (properties[propertyKey] === value) {
+    return;
+  }
+
+  const lines = fs.readFileSync(configPath, 'utf8').replace(/\r?\n$/, '').split(/\r?\n/);
+  const index = lines.findIndex((line) => line.trim().startsWith(`${propertyKey}=`));
+
+  if (index === -1) {
+    lines.push(`${propertyKey}=${value}`);
+  } else {
+    lines[index] = `${propertyKey}=${value}`;
+  }
+
+  const tempPath = `${configPath}.tmp`;
+  fs.writeFileSync(tempPath, `${lines.join('\n')}\n`, 'utf8');
+  fs.renameSync(tempPath, configPath);
+  properties[propertyKey] = value;
 }
 
 function parseTimeoutSeconds(value: string): number {

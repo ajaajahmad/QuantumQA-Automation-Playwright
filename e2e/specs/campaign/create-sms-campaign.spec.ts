@@ -1,5 +1,5 @@
 import { test } from '../../fixtures/test-fixtures';
-import { appConfig } from '../../utils/config';
+import { appConfig, saveConfigValue } from '../../utils/config';
 import { appendLocalTimestamp } from '../../utils/date-time';
 
 test.describe('SMS campaign creation', () => {
@@ -18,9 +18,20 @@ test.describe('SMS campaign creation', () => {
     await campaignListPage.acknowledgeDltPopupWindow();
     await campaignListPage.clickOnCreateCampaignButton();
 
-    await createSmsCampaignPage.createAndSend({
+    const categoryCreated = await createSmsCampaignPage.fillCampaignDetails({
       name: appendLocalTimestamp('Test_Camp'),
-      category: 'automation',
+      category: appConfig.campaignCategory,
+      senderId: appConfig.smsSenderId || undefined,
+    });
+
+    if (categoryCreated) {
+      test.info().annotations.push({ type: 'campaign category', description: `Created ${appConfig.campaignCategory}` });
+    }
+
+    // Saved before the remaining steps, so a later failure can't lose a category that now exists.
+    saveConfigValue('campaign_category', appConfig.campaignCategory);
+
+    await createSmsCampaignPage.addContactsAndSend({
       listName: appConfig.smsListName,
       templateName: appConfig.smsTemplateName,
     });
