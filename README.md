@@ -77,7 +77,7 @@ The `login` project (the login and forgot-password specs) runs alongside, from a
 >
 > Just before clicking Reset, the new password is saved to `e2e/test-data/pending-password.json` (gitignored). If any later step fails, `userdata.json` is left unchanged and the pending file stays, because staging may already have accepted the new password. The next reset then stops until you log in with the pending password, copy it into `userdata.json` if it works, and delete the file.
 >
-> The forgot-password negative specs never change the password. They request 4 OTPs per run to the account's registered mobile, and the reset requests one more.
+> The forgot-password negative specs never change the password: each one checks that staging refused the password it submitted, and if staging ever accepts one, the test writes that password into `userdata.json` before failing, so later runs can still log in. They request 13 OTPs per run to the account's registered mobile, the login specs trigger 2FA OTPs too, and the reset requests one more.
 
 ## Reports and Debugging
 
@@ -102,7 +102,7 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid, empty-field, and invalid-credential checks), forgot password (including a real password reset), and SMS campaign creation. Still to migrate from the Java suite:
+Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), and SMS campaign creation. Still to migrate from the Java suite:
 
 1. SMS MIS summary and advanced pages
 2. WhatsApp campaign and MIS pages

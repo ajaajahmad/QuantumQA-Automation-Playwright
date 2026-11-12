@@ -6,11 +6,13 @@ export class LoginPage {
 
   private readonly usernameInput: Locator;
   private readonly passwordInput: Locator;
+  private readonly passwordVisibilityToggle: Locator;
   private readonly loginButton: Locator;
   private readonly loggedInProfileIcon: Locator;
   private readonly forgotPasswordLink: Locator;
   private readonly usernameRequired: Locator;
   private readonly passwordRequired: Locator;
+  private readonly usernameInvalid: Locator;
   private readonly loginErrorMessage: Locator;
 
   constructor(page: Page) {
@@ -18,11 +20,14 @@ export class LoginPage {
 
     this.usernameInput = page.locator("//input[@formcontrolname='username']");
     this.passwordInput = page.locator("//input[@formcontrolname='password']");
+    // An icon link whose text is the icon name: visibility_off while masked, visibility when shown.
+    this.passwordVisibilityToggle = page.locator('a', { hasText: 'visibility' });
     this.loginButton = page.locator('button.submit');
     this.loggedInProfileIcon = page.locator('.user-name-alias');
     this.forgotPasswordLink = page.getByText('Forgot Password ?');
     this.usernameRequired = page.locator("//span[contains(text(),'Username is required')]");
     this.passwordRequired = page.locator("//span[contains(text(),'Password is required')]");
+    this.usernameInvalid = page.getByText('Username is invalid');
     this.loginErrorMessage = page.locator('[matsnackbarlabel]');
   }
 
@@ -42,8 +47,25 @@ export class LoginPage {
     await this.loginButton.click();
   }
 
+  async submitWithEnter(): Promise<void> {
+    await this.passwordInput.press('Enter');
+  }
+
+  async togglePasswordVisibility(): Promise<void> {
+    await this.passwordVisibilityToggle.click();
+  }
+
   async openForgotPassword(): Promise<void> {
     await this.forgotPasswordLink.click();
+  }
+
+  // Stops at the 2FA screen without submitting an OTP.
+  async openTwoFactorScreen(username: string, password: string): Promise<void> {
+    await this.expectDisplayed();
+    await this.enterUsername(username);
+    await this.enterPassword(password);
+    await this.clickLoginButton();
+    await this.twoFactorPage.expectDisplayed();
   }
 
   // otp is only needed when the user has two-factor authentication on.
@@ -76,6 +98,23 @@ export class LoginPage {
 
   async expectEmptyPasswordError(): Promise<void> {
     await expect(this.passwordRequired).toHaveText('Password is required');
+  }
+
+  async expectLoggedOut(): Promise<void> {
+    await this.expectDisplayed();
+    await expect(this.loggedInProfileIcon).toBeHidden();
+  }
+
+  async expectPasswordMasked(): Promise<void> {
+    await expect(this.passwordInput).toHaveAttribute('type', 'password');
+  }
+
+  async expectPasswordShown(): Promise<void> {
+    await expect(this.passwordInput).toHaveAttribute('type', 'text');
+  }
+
+  async expectInvalidUsernameError(): Promise<void> {
+    await expect(this.usernameInvalid).toBeVisible();
   }
 
   async expectInvalidCredentialsError(): Promise<void> {
