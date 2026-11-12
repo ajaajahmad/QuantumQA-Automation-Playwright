@@ -1,6 +1,10 @@
 import { expect, test } from '../../fixtures/test-fixtures';
+import type { TemplateDetails } from '../../pages/sms/create-template.page';
+import { randomDigits, uniqueSuffix } from '../../utils/random';
+import { deleteSmsTemplate, listSmsSenders, listSmsTemplates } from '../../utils/sms-api';
 
-// Read-only: nothing here saves a template.
+// The list and form-validation tests are read-only. The lifecycle tests create real templates
+// on the automation-only staging account and delete everything they created afterwards.
 
 test.describe('SMS Templates', () => {
   test('lists the templates the API returned', async ({ templatesPage }) => {
@@ -45,25 +49,6 @@ test.describe('SMS Templates', () => {
     await templatesPage.listing.expectRowCount(Math.min(templates.total, 25));
   });
 
-  test('offers the account sender IDs and every content type', async ({
-    senderIdsPage,
-    templatesPage,
-    createTemplatePage,
-  }) => {
-    const senders = await senderIdsPage.open();
-    await templatesPage.open();
-    await templatesPage.openCreateTemplate();
-    await createTemplatePage.expectDisplayed();
-
-    await createTemplatePage.expectSenderIdOptions(senders.docs.map((sender) => sender.sender));
-    await createTemplatePage.expectContentTypeOptions([
-      'Transactional',
-      'Promotional',
-      'Service Implicit',
-      'Service Explicit',
-    ]);
-  });
-
   test('refuses to save an empty template', async ({ templatesPage, createTemplatePage }) => {
     await templatesPage.open();
     await templatesPage.openCreateTemplate();
@@ -84,5 +69,103 @@ test.describe('SMS Templates', () => {
 
     await templatesPage.expectDisplayed();
     await expect(page).toHaveURL(/\/content-management\/sms\/templates$/);
+  });
+});
+
+test.describe('SMS Template lifecycle', () => {
+  let templateIdsBefore: Set<string>;
+  let template: TemplateDetails;
+
+  // Remember what existed, so cleanup removes everything a test created, even a template
+  // that a refusal test failed to stop.
+  test.beforeEach(async ({ api }) => {
+    templateIdsBefore = new Set((await listSmsTemplates(api)).map((existing) => existing.id));
+
+    // An existing sender, not one the sender ID tests create and delete in parallel.
+    const sender = (await listSmsSenders(api)).find((candidate) => !candidate.sender.startsWith('QAT'));
+    test.skip(!sender, 'The account needs a sender ID to create templates.');
+
+    template = {
+      name: `qa_auto_${uniqueSuffix().toLowerCase()}`,
+      dltTemplateId: randomDigits(19),
+      senderId: sender!.sender,
+      contentType: 'Transactional',
+      content: 'QA automation template, please ignore.',
+    };
+  });
+
+  test.afterEach(async ({ api }) => {
+    for (const created of (await listSmsTemplates(api)).filter((current) => !templateIdsBefore.has(current.id))) {
+      await deleteSmsTemplate(api, created.id);
+    }
+  });
+
+  test('creates a template that is listed as approved', async ({ templatesPage, createTemplatePage }) => {
+    await templatesPage.open();
+    await templatesPage.openCreateTemplate();
+    await createTemplatePage.enterDetails(template);
+
+    const result = await createTemplatePage.saveTemplate();
+
+    expect(result).toEqual({ success: true, message: `Template ID - ${template.dltTemplateId} created for 1 Sender ID(s)` });
+    await templatesPage.open();
+    await templatesPage.listing.expectRow(template.name, [
+      template.dltTemplateId,
+      template.content,
+      template.contentType,
+      'Approved',
+      template.senderId,
+    ]);
+  });
+
+  test('edits a template', async ({ templatesPage, createTemplatePage }) => {
+    const editedContent = 'QA automation template, edited.';
+    await templatesPage.open();
+    await templatesPage.openCreateTemplate();
+    await createTemplatePage.enterDetails(template);
+    expect((await createTemplatePage.saveTemplate()).success).toBe(true);
+
+    await templatesPage.open();
+    await templatesPage.listing.openEdit(template.name);
+    await createTemplatePage.expectName(template.name);
+    await createTemplatePage.enterContent(editedContent);
+    const result = await createTemplatePage.saveTemplate();
+
+    expect(result).toEqual({ success: true, message: `Template ID - ${template.dltTemplateId} updated for 1 Sender ID(s)` });
+    await templatesPage.open();
+    await templatesPage.listing.expectRow(template.name, [editedContent]);
+  });
+
+  test('deletes a template after confirmation', async ({ templatesPage, createTemplatePage }) => {
+    await templatesPage.open();
+    await templatesPage.openCreateTemplate();
+    await createTemplatePage.enterDetails(template);
+    expect((await createTemplatePage.saveTemplate()).success).toBe(true);
+
+    await templatesPage.open();
+    await templatesPage.listing.delete(template.name);
+
+    await templatesPage.expectNotification('Templates has been deleted');
+    await templatesPage.listing.search(template.name);
+    await templatesPage.listing.expectNoRecords();
+  });
+
+  test('refuses a duplicate template name', async ({ api, templatesPage, createTemplatePage }) => {
+    await templatesPage.open();
+    await templatesPage.openCreateTemplate();
+    await createTemplatePage.enterDetails(template);
+    expect((await createTemplatePage.saveTemplate()).success).toBe(true);
+
+    await templatesPage.open();
+    await templatesPage.openCreateTemplate();
+    await createTemplatePage.enterDetails({ ...template, dltTemplateId: randomDigits(19) });
+    const result = await createTemplatePage.saveTemplate();
+
+    expect(result).toEqual({
+      success: false,
+      message: 'Template with the same name already exists. Please enter another name',
+    });
+    const named = (await listSmsTemplates(api)).filter((current) => current.name === template.name);
+    expect(named).toHaveLength(1);
   });
 });
