@@ -71,6 +71,8 @@ Login happens once and the access token is reused across runs. `auth-setup` reus
 
 The `login` project (the login and forgot-password specs) runs alongside, from a clean browser. Those specs log in because that is what they test, and staging keeps other sessions alive when they log out.
 
+> **Note:** the sender ID and template lifecycle specs create, edit and delete real records on staging. Each test removes everything it created through the API afterwards, even when it fails, and test records are named `QAT...` (sender IDs) and `qa_auto_...` (templates).
+
 > **Note:** the SMS campaign spec clicks **Send Now**, so every run creates a campaign on staging. Staging uses a fake SMS setup, so no real messages are delivered. Retries are disabled for this spec so a failure can't create a duplicate campaign.
 
 > **Caution:** `npm run test:password-reset` changes the password of the forgot-password account, which is also the account all tests log in with. It never runs as part of `npm test`, because the reset revokes every token, including the saved one. Run it on its own, not while other tests are running. The spec generates a new password with the same length and character types as the current one, resets it through forgot password, and logs in with it. Only after that login succeeds does it write the new password into `userdata.json` and save the new session, so the next run reuses that token instead of logging in.
@@ -93,7 +95,7 @@ config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects
-  pages/           page objects by UI area (login, dashboard, campaign) and shared components
+  pages/           page objects by UI area (login, dashboard, sms, campaign) and shared components
   specs/           test specs
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers
@@ -102,7 +104,7 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), and SMS campaign creation. Still to migrate from the Java suite:
+Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), SMS sender IDs and templates (list, search, page size, form validation, cancel, and create, edit and delete with duplicate and format checks), and SMS campaigns (list, search, page size, create-form validation, and sending a campaign). Still to migrate from the Java suite:
 
 1. SMS MIS summary and advanced pages
 2. WhatsApp campaign and MIS pages
