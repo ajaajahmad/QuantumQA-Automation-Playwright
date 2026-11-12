@@ -7,6 +7,10 @@ import { SideNav } from '../pages/components/side-nav.component';
 import { DashboardPage } from '../pages/dashboard/dashboard.page';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
+import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
+import { CreateTemplatePage } from '../pages/sms/create-template.page';
+import { SenderIdsPage } from '../pages/sms/sender-ids.page';
+import { TemplatesPage } from '../pages/sms/templates.page';
 import { readAccessToken, readSessionState } from '../utils/auth-state';
 import { appConfig } from '../utils/config';
 
@@ -21,6 +25,10 @@ type QuantumFixtures = {
   sideNav: SideNav;
   campaignListPage: CampaignListPage;
   createSmsCampaignPage: CreateSmsCampaignPage;
+  senderIdsPage: SenderIdsPage;
+  createSenderIdPage: CreateSenderIdPage;
+  templatesPage: TemplatesPage;
+  createTemplatePage: CreateTemplatePage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -89,6 +97,18 @@ export const test = base.extend<QuantumFixtures>({
   },
   createSmsCampaignPage: async ({ page }, use) => {
     await use(new CreateSmsCampaignPage(page));
+  },
+  senderIdsPage: async ({ page }, use) => {
+    await use(new SenderIdsPage(page));
+  },
+  createSenderIdPage: async ({ page }, use) => {
+    await use(new CreateSenderIdPage(page));
+  },
+  templatesPage: async ({ page }, use) => {
+    await use(new TemplatesPage(page));
+  },
+  createTemplatePage: async ({ page }, use) => {
+    await use(new CreateTemplatePage(page));
   },
 });
 

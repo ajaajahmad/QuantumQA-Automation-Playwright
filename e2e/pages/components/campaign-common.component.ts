@@ -22,6 +22,11 @@ export class CampaignCommonComponent {
     this.categoryCreateNewButton = page.locator('button.custom-select-with-create-create-new-submit');
   }
 
+  // The form suggests a name like "13Nov2026-00:20 SMS Campaign".
+  async expectSuggestedCampaignName(channel: string): Promise<void> {
+    await expect(this.campaignNameInput).toHaveValue(new RegExp(`^\\d{2}[A-Z][a-z]{2}\\d{4}-\\d{2}:\\d{2} ${channel} Campaign$`));
+  }
+
   async enterCampaignName(campaignName: string): Promise<void> {
     await this.campaignNameInput.fill(campaignName);
   }

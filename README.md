@@ -93,7 +93,7 @@ config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects
-  pages/           page objects by UI area (login, dashboard, campaign) and shared components
+  pages/           page objects by UI area (login, dashboard, sms, campaign) and shared components
   specs/           test specs
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers
@@ -102,7 +102,7 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), and SMS campaign creation. Still to migrate from the Java suite:
+Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), SMS sender IDs and templates (list, search, page size, empty-form validation, cancel), and SMS campaigns (list, search, page size, create-form validation, and sending a campaign). Still to migrate from the Java suite:
 
 1. SMS MIS summary and advanced pages
 2. WhatsApp campaign and MIS pages
