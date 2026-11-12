@@ -1,5 +1,6 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { appConfig } from '../../utils/config';
+import { DeleteConfirmationDialog } from './delete-confirmation.dialog';
 
 // One page of a list endpoint, as the list pages load it.
 export type ListResponse<T> = {
@@ -9,6 +10,8 @@ export type ListResponse<T> = {
 
 // The searchable, paged table shared by the SMS Sender IDs, Templates and Campaigns pages.
 export class ListingComponent {
+  readonly deleteConfirmationDialog: DeleteConfirmationDialog;
+
   private readonly searchInput: Locator;
   private readonly pageSizeSelect: Locator;
   private readonly rows: Locator;
@@ -20,6 +23,8 @@ export class ListingComponent {
     private readonly page: Page,
     private readonly apiPath: string,
   ) {
+    this.deleteConfirmationDialog = new DeleteConfirmationDialog(page);
+
     this.searchInput = page.locator('input.filter-search');
     this.pageSizeSelect = page.locator('select.custom-show-entries');
     this.rows = page.locator('tbody tr');
@@ -80,5 +85,30 @@ export class ListingComponent {
 
   async expectNoRecords(): Promise<void> {
     await expect(this.noRecords).toBeVisible();
+  }
+
+  // Searches for the row first, so it is on the current page whatever the list size.
+  async expectRow(name: string, cells: string[]): Promise<void> {
+    await this.search(name);
+    const row = this.row(name);
+    for (const cell of cells) {
+      await expect(row).toContainText(cell);
+    }
+  }
+
+  async openEdit(name: string): Promise<void> {
+    await this.search(name);
+    await this.row(name).locator('.icon-edit-1').click();
+  }
+
+  async delete(name: string): Promise<void> {
+    await this.search(name);
+    await this.row(name).locator('.icon-Delete').click();
+    await this.deleteConfirmationDialog.confirm();
+  }
+
+  // Matches the whole name cell, so "QA1" doesn't also match "QA12".
+  private row(name: string): Locator {
+    return this.rows.filter({ has: this.page.getByText(name, { exact: true }) });
   }
 }
