@@ -1,8 +1,10 @@
 import { test as base, type APIRequestContext } from '@playwright/test';
 import { CampaignListPage } from '../pages/campaign/campaign-list.page';
 import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
+import { AppHeader } from '../pages/components/app-header.component';
 import { LogoutComponent } from '../pages/components/logout.component';
 import { SideNav } from '../pages/components/side-nav.component';
+import { DashboardPage } from '../pages/dashboard/dashboard.page';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
 import { readAccessToken, readSessionState } from '../utils/auth-state';
@@ -14,6 +16,8 @@ type QuantumFixtures = {
   loginPage: LoginPage;
   forgotPasswordPage: ForgotPasswordPage;
   logoutComponent: LogoutComponent;
+  appHeader: AppHeader;
+  dashboardPage: DashboardPage;
   sideNav: SideNav;
   campaignListPage: CampaignListPage;
   createSmsCampaignPage: CreateSmsCampaignPage;
@@ -70,6 +74,12 @@ export const test = base.extend<QuantumFixtures>({
   },
   logoutComponent: async ({ page }, use) => {
     await use(new LogoutComponent(page));
+  },
+  appHeader: async ({ page }, use) => {
+    await use(new AppHeader(page));
+  },
+  dashboardPage: async ({ page }, use) => {
+    await use(new DashboardPage(page));
   },
   sideNav: async ({ page }, use) => {
     await use(new SideNav(page));

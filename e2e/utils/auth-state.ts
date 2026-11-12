@@ -46,29 +46,43 @@ export function readSessionState(): SessionState | undefined {
   return JSON.parse(fs.readFileSync(sessionStatePath, 'utf8')) as SessionState;
 }
 
+// The browser drops the token cookie an hour after login even while the API still accepts the
+// token, and the app then shows the login page. Log in again when less than this is left, so a
+// run can't cross the expiry halfway.
+const minimumCookieLifeMs = 15 * 60 * 1000;
+
+type Cookie = { name: string; value: string; expires: number };
+
 // The app keeps its API token in this cookie and sends it as a Bearer header.
-export function readAccessToken(): string | undefined {
+function readAccessTokenCookie(): Cookie | undefined {
   if (!fs.existsSync(storageStatePath)) {
     return undefined;
   }
 
-  const { cookies } = JSON.parse(fs.readFileSync(storageStatePath, 'utf8')) as {
-    cookies: { name: string; value: string }[];
-  };
+  const { cookies } = JSON.parse(fs.readFileSync(storageStatePath, 'utf8')) as { cookies: Cookie[] };
 
-  return cookies.find((cookie) => cookie.name === 'access-token')?.value;
+  return cookies.find((cookie) => cookie.name === 'access-token');
 }
 
-// Tokens expire after about an hour and a password reset revokes them, so ask the API.
-export async function isSavedTokenValid(request: APIRequestContext): Promise<boolean> {
-  const token = readAccessToken();
+export function readAccessToken(): string | undefined {
+  return readAccessTokenCookie()?.value;
+}
 
-  if (!token || !readSessionState()) {
+// Both must hold: the browser still has the cookie for long enough, and the API accepts the token
+// (a password reset revokes it). expires is -1 for a cookie without an expiry.
+export async function isSavedTokenValid(request: APIRequestContext): Promise<boolean> {
+  const cookie = readAccessTokenCookie();
+
+  if (!cookie || !readSessionState()) {
+    return false;
+  }
+
+  if (cookie.expires !== -1 && cookie.expires * 1000 - Date.now() < minimumCookieLifeMs) {
     return false;
   }
 
   const response = await request.get(`${appConfig.apiUrl}/api/v1/users/user-currency`, {
-    headers: { Authorization: `Bearer ${token}` },
+    headers: { Authorization: `Bearer ${cookie.value}` },
   });
 
   return response.ok();

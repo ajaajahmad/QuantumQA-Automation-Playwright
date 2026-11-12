@@ -67,7 +67,7 @@ npm run typecheck           # TypeScript check, no browser
 
 Tests run in Chromium: headed locally, headless when `CI` is set.
 
-Login happens once and the access token is reused across runs. `auth-setup` checks the token saved in `artifacts/.auth/` with one API call and logs in only if the API rejects it. Tokens last about an hour, and a password reset revokes them. `chromium` then runs every other spec with that saved session. Specs that call the API directly use the `api` fixture, which sends the saved token as a Bearer header, e.g. `await api.get('/api/v1/settings')`.
+Login happens once and the access token is reused across runs. `auth-setup` reuses the session saved in `artifacts/.auth/` while its token cookie has at least 15 minutes left and the API accepts the token, and logs in otherwise. The browser drops the cookie an hour after login, even though the API may still accept the token, and a password reset revokes the token. `chromium` then runs every other spec with that saved session. Specs that call the API directly use the `api` fixture, which sends the saved token as a Bearer header, e.g. `await api.get('/api/v1/settings')`.
 
 The `login` project (the login and forgot-password specs) runs alongside, from a clean browser. Those specs log in because that is what they test, and staging keeps other sessions alive when they log out.
 
@@ -93,7 +93,7 @@ config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects
-  pages/           page objects and shared components
+  pages/           page objects by UI area (login, dashboard, campaign) and shared components
   specs/           test specs
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers
@@ -102,7 +102,7 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), and SMS campaign creation. Still to migrate from the Java suite:
+Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), and SMS campaign creation. Still to migrate from the Java suite:
 
 1. SMS MIS summary and advanced pages
 2. WhatsApp campaign and MIS pages
