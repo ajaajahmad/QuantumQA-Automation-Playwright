@@ -2,8 +2,6 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { usDate } from '../../utils/date-time';
 import { waitForReport, type ReportResponse } from '../../utils/report-response';
 
-export type ReportCounts = 'Submission' | 'Billable';
-
 // The counts, period and date controls above the summary reports.
 export class ReportFiltersComponent {
   private readonly periodSelect: Locator;
@@ -22,13 +20,14 @@ export class ReportFiltersComponent {
     this.monthYearToggle = this.monthYearPicker.locator('.placeholder-color');
   }
 
-  async countBy(counts: ReportCounts): Promise<ReportResponse> {
+  // counts is the radio label, which differs by channel, e.g. Billable or No. of recipients.
+  async countBy(counts: string): Promise<ReportResponse> {
     return waitForReport(this.page, this.reportPaths, () =>
       this.page.getByRole('radio', { name: counts }).check({ force: true }),
     );
   }
 
-  async expectCountedBy(counts: ReportCounts): Promise<void> {
+  async expectCountedBy(counts: string): Promise<void> {
     await expect(this.page.getByRole('radio', { name: counts })).toBeChecked();
   }
 
