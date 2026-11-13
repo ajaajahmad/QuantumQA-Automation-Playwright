@@ -7,6 +7,7 @@ import { SideNav } from '../pages/components/side-nav.component';
 import { DashboardPage } from '../pages/dashboard/dashboard.page';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
+import { WhatsAppSummaryPage } from '../pages/reports/whatsapp-summary.page';
 import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
 import { CreateTemplatePage } from '../pages/sms/create-template.page';
 import { SenderIdsPage } from '../pages/sms/sender-ids.page';
@@ -29,6 +30,7 @@ type QuantumFixtures = {
   createSenderIdPage: CreateSenderIdPage;
   templatesPage: TemplatesPage;
   createTemplatePage: CreateTemplatePage;
+  whatsAppSummaryPage: WhatsAppSummaryPage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -109,6 +111,9 @@ export const test = base.extend<QuantumFixtures>({
   },
   createTemplatePage: async ({ page }, use) => {
     await use(new CreateTemplatePage(page));
+  },
+  whatsAppSummaryPage: async ({ page }, use) => {
+    await use(new WhatsAppSummaryPage(page));
   },
 });
 
