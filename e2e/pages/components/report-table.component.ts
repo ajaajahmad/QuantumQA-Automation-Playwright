@@ -11,6 +11,7 @@ export class ReportTableComponent {
   private readonly moreToggle: Locator;
   private readonly moreOptions: Locator;
   private readonly headers: Locator;
+  private readonly dataRows: Locator;
   private readonly noRecords: Locator;
   private readonly pageSizeSelect: Locator;
 
@@ -26,6 +27,7 @@ export class ReportTableComponent {
     this.moreToggle = page.locator('#more_con');
     this.moreOptions = this.viewByBar.locator('ul.bottom_drop > li');
     this.headers = page.locator('app-mis-table thead th');
+    this.dataRows = page.locator('app-mis-table tbody tr:not(.table_total)');
     this.noRecords = page.locator('app-mis-table').getByText('No Records Found');
     this.pageSizeSelect = page.locator('app-table-pagination select');
   }
@@ -65,9 +67,20 @@ export class ReportTableComponent {
     await expect(this.headers).toHaveText(report.columns);
   }
 
-  // Only the empty state is pinned down: the account has no traffic to build rows from yet.
+  // One row per doc on this page. The page and grand total rows below them are not counted,
+  // and an empty report shows its message in a row of its own.
   async expectRecordsOf(report: ReportResponse): Promise<void> {
-    await expect(this.noRecords).toBeVisible({ visible: report.total === 0 });
+    if (report.docs.length === 0) {
+      await expect(this.noRecords).toBeVisible();
+      return;
+    }
+
+    await expect(this.noRecords).toBeHidden();
+    await expect(this.dataRows).toHaveCount(report.docs.length);
+  }
+
+  async expectFirstColumn(values: string[]): Promise<void> {
+    await expect(this.dataRows.locator('td:first-child')).toHaveText(values);
   }
 
   async setPageSize(size: number): Promise<ReportResponse> {
