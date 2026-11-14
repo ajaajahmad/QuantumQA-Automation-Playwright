@@ -31,6 +31,15 @@ export const smsAdvanced: AdvancedReport = {
   viaApiOptions: '/api/v1/sms-mis/advanced-summary-api-filter-option-by-field',
 };
 
+export const rcsAdvanced: AdvancedReport = {
+  heading: 'RCS Advance Search',
+  path: '/reports/rcs/advanced',
+  viaPanelSearch: '/api/v1/rcs-mis/rcs-advanced-summary',
+  viaApiSearch: '/api/v1/rcs-api-mis/rcs-advanced-summary',
+  viaPanelOptions: '/api/v1/rcs-mis/advanced-summary-filter-option-by-field',
+  viaApiOptions: '/api/v1/rcs-api-mis/advanced-summary-filter-option-by-field',
+};
+
 // Reports > <channel> > Advanced. Both tabs show a search form and, once searched, the same
 // view-by bar and table as the summary reports; each tab posts to its own endpoint.
 export class AdvancedReportPage {

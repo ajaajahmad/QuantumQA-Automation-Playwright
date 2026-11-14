@@ -7,8 +7,8 @@ import { SideNav } from '../pages/components/side-nav.component';
 import { DashboardPage } from '../pages/dashboard/dashboard.page';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
-import { AdvancedReportPage, smsAdvanced, whatsAppAdvanced } from '../pages/reports/advanced-report.page';
-import { smsSummary, SummaryReportPage, whatsAppSummary } from '../pages/reports/summary-report.page';
+import { AdvancedReportPage, rcsAdvanced, smsAdvanced, whatsAppAdvanced } from '../pages/reports/advanced-report.page';
+import { rcsSummary, smsSummary, SummaryReportPage, whatsAppSummary } from '../pages/reports/summary-report.page';
 import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
 import { CreateTemplatePage } from '../pages/sms/create-template.page';
 import { SenderIdsPage } from '../pages/sms/sender-ids.page';
@@ -35,6 +35,8 @@ type QuantumFixtures = {
   smsSummaryPage: SummaryReportPage;
   whatsAppAdvancedPage: AdvancedReportPage;
   smsAdvancedPage: AdvancedReportPage;
+  rcsSummaryPage: SummaryReportPage;
+  rcsAdvancedPage: AdvancedReportPage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -127,6 +129,12 @@ export const test = base.extend<QuantumFixtures>({
   },
   smsAdvancedPage: async ({ page }, use) => {
     await use(new AdvancedReportPage(page, smsAdvanced));
+  },
+  rcsSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, rcsSummary));
+  },
+  rcsAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, rcsAdvanced));
   },
 });
 
