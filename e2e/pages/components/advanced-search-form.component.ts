@@ -72,8 +72,18 @@ export class AdvancedSearchForm {
       await selectMode.check({ force: true });
     }
 
-    await block.locator('ng-select').click();
+    // The list is fetched as it opens, and the Status list stays open over Search once a value is
+    // picked, so wait for the options and close the list after choosing.
+    const list = block.locator('ng-select');
+    const options = this.page.waitForResponse(
+      (response) => this.optionPaths.includes(new URL(response.url()).pathname),
+    );
+    await list.click();
+    await options;
     await this.page.getByRole('option', { name: option, exact: true }).click();
+    await this.page.keyboard.press('Escape');
+    await expect(this.page.locator('ng-dropdown-panel')).toHaveCount(0);
+    await expect(list).toContainText(option);
   }
 
   async contains(field: string, text: string): Promise<void> {
