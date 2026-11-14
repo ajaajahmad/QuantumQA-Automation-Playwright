@@ -58,14 +58,15 @@ Any property can be overridden with an environment variable: `APP_URL`, `API_URL
 ## Running Tests
 
 ```bash
-npm test                    # all specs
+npm test                    # all specs, headless
+npm run test:headed         # all specs, with the browser window open
 npm run test:sms-campaign   # SMS campaign spec only
 npm run test:password-reset # change the account password (on demand only)
 npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
 
-Tests run in Chromium: headed locally, headless when `CI` is set.
+Tests run in Chromium, headless by default. Set `HEADED=1` (or use `npm run test:headed`) to watch the browser; headed runs fill the maximised window. `CI` does not affect headless mode; it sets retries, the worker count and `forbidOnly`.
 
 Login happens once and the access token is reused across runs. `auth-setup` reuses the session saved in `artifacts/.auth/` while its token cookie has at least 15 minutes left and the API accepts the token, and logs in otherwise. The browser drops the cookie an hour after login, even though the API may still accept the token, and a password reset revokes the token. `chromium` then runs every other spec with that saved session. Specs that call the API directly use the `api` fixture, which sends the saved token as a Bearer header, e.g. `await api.get('/api/v1/settings')`.
 
