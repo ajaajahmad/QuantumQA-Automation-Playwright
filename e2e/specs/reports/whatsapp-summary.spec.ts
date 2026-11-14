@@ -162,6 +162,7 @@ test.describe('WhatsApp Summary via panel', () => {
 
   test('narrows the report to one campaign and widens it again when cleared', async ({ whatsAppSummaryPage }) => {
     const unfiltered = await whatsAppSummaryPage.open();
+    test.skip(unfiltered.docs.length === 0, 'No WhatsApp campaigns ran yesterday or today.');
     const [campaign] = await whatsAppSummaryPage.filterBar.options('Campaign Name');
 
     const filtered = await whatsAppSummaryPage.filterBar.filterBy('Campaign Name', campaign);
