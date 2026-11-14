@@ -104,10 +104,10 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), SMS sender IDs and templates (list, search, page size, form validation, cancel, and create, edit and delete with duplicate and format checks), SMS campaigns (list, search, page size, create-form validation, and sending a campaign), and the SMS and WhatsApp summary reports (both tabs: every view, counts, custom, monthly and yearly periods, and page size, each checked against the request it sends and the columns and rows the API returns). Still to migrate from the Java suite:
+Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), SMS sender IDs and templates (list, search, page size, form validation, cancel, and create, edit and delete with duplicate and format checks), SMS campaigns (list, search, page size, create-form validation, and sending a campaign), the SMS and WhatsApp summary reports (every tab and view, counts, custom, monthly and yearly periods, the filter bar, and page size, each checked against the request it sends and the columns, cells and totals the API returns; WhatsApp also covers incoming messages), and the WhatsApp advanced search (both tabs: the fields and their lists, searching by picked value, contained text, mobile number, status, tag and GUID, every view, counts, dates, and page size, checked against what Search posts and the table it builds). Still to migrate from the Java suite:
 
 1. SMS advanced MIS pages
-2. WhatsApp campaigns, WhatsApp advanced MIS pages
+2. WhatsApp campaigns
 3. RCS MIS pages
 4. Truecaller MIS pages
 5. Account MIS pages
