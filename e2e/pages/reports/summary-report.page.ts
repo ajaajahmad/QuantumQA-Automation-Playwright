@@ -86,6 +86,11 @@ export class SummaryReportPage {
     return report;
   }
 
+  // The tab is there only for accounts with two-way messaging switched on.
+  async hasIncomingMessages(): Promise<boolean> {
+    return this.incomingMessagesTab.isVisible();
+  }
+
   async expectTabs(tabs: string[]): Promise<void> {
     await expect(this.page.locator('app-mis-common-tabs').getByRole('tab')).toHaveText(tabs);
   }
