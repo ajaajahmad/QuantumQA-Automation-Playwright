@@ -30,6 +30,13 @@ export const smsSummary: SummaryReport = {
   viaApiReport: '/api/v1/sms-api-mis',
 };
 
+export const rcsSummary: SummaryReport = {
+  heading: 'RCS Summary',
+  path: '/reports/rcs/summary',
+  viaPanelReport: '/api/v1/rcs-mis/viewby-campaign',
+  viaApiReport: '/api/v1/rcs-api-mis',
+};
+
 // Reports > <channel> > Summary. The tabs share the filters and table; each loads its own endpoint.
 export class SummaryReportPage {
   readonly filters: ReportFiltersComponent;
