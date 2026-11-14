@@ -14,7 +14,10 @@ export class TwoFactorPage {
   constructor(page: Page) {
     this.cancelConfirmationDialog = new CancelConfirmationDialog(page);
 
-    this.heading = page.getByRole('heading', { name: 'Two factor authentication' });
+    // An unrecognised browser gets the same OTP form under a different heading.
+    this.heading = page.getByRole('heading', {
+      name: /Two factor authentication|You are logging in from a new device/,
+    });
     this.otpInput = page.getByRole('textbox', { name: 'Enter OTP' });
     this.validateButton = page.getByRole('button', { name: 'Validate' });
     this.cancelButton = page.getByRole('button', { name: 'Cancel' });
