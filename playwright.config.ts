@@ -23,6 +23,12 @@ export default defineConfig({
   ],
   use: {
     ...devices['Desktop Chrome'],
+    // Headed runs fill the maximised window instead of a 1280x720 box inside it (a free viewport
+    // can't have a device scale factor). Headless keeps the fixed Desktop Chrome viewport so
+    // results don't depend on the screen they run on.
+    ...(headless
+      ? {}
+      : { viewport: null, deviceScaleFactor: undefined, launchOptions: { args: ['--start-maximized'] } }),
     browserName,
     headless,
     baseURL: appConfig.appUrl,
