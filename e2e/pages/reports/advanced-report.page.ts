@@ -22,6 +22,15 @@ export const whatsAppAdvanced: AdvancedReport = {
   viaApiOptions: '/api/v1/whatsapp-api-mis/advanced-summary-api-filter-option-by-field',
 };
 
+export const smsAdvanced: AdvancedReport = {
+  heading: 'SMS Advance Search',
+  path: '/reports/sms/advanced',
+  viaPanelSearch: '/api/v1/sms-mis/sms-advanced-summary',
+  viaApiSearch: '/api/v1/sms-mis/sms-api-advanced-summary',
+  viaPanelOptions: '/api/v1/sms-mis/advanced-summary-filter-option-by-field',
+  viaApiOptions: '/api/v1/sms-mis/advanced-summary-api-filter-option-by-field',
+};
+
 // Reports > <channel> > Advanced. Both tabs show a search form and, once searched, the same
 // view-by bar and table as the summary reports; each tab posts to its own endpoint.
 export class AdvancedReportPage {
