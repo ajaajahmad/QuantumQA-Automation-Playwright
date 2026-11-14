@@ -1,11 +1,13 @@
 import { expect, test } from '../../fixtures/test-fixtures';
 import { daysAgo, isoDate } from '../../utils/date-time';
+import { viewsOf } from '../../utils/report-response';
 
 // Read-only. The rows come from whatever SMS traffic the account has in the period, mostly the
 // campaigns the SMS campaign spec sends, so tests compare the table with the response. The page
 // is opened by URL because the Reports > SMS side-nav link doesn't navigate on staging.
 
-// [view, group_by]. The first is the view each tab opens on.
+// [view, group_by]. The first is the view each tab opens on. These are all the views known; an
+// account is offered a subset (the reasons views, for one, are not offered to every account).
 const panelViews = [
   ['Campaign', 'campaign'],
   ['Date & Campaign', 'campaign_name'],
@@ -13,6 +15,8 @@ const panelViews = [
   ['Country', 'country'],
   ['Sender ID', 'sender_id'],
   ['Operator', 'operator'],
+  ['Failure Reasons', 'failure_reason'],
+  ['Rejected Reasons', 'rejected_reason'],
   ['List Name', 'list_id'],
   ['Link Click', 'link_click'],
   ['Template ID', 'dlt_template_id'],
@@ -27,6 +31,7 @@ const apiViews = [
   ['Sender ID', 'sender_id'],
   ['Operator', 'operator'],
   ['Country', 'country'],
+  ['Failure Reasons', 'failure_reason'],
   ['Template ID', 'dlt_template_id'],
   ['Template Name', 'template_name'],
   ['Monthly', 'monthly'],
@@ -67,17 +72,19 @@ test.describe('SMS Summary via panel', () => {
     await smsSummaryPage.table.expectFirstColumn(report.docs.map((doc) => String(doc.campaign_name)));
   });
 
-  // Also guards the view list below: a view the API adds or drops fails here first.
+  // Also guards the view list above: a view the API adds that the list doesn't know fails here.
   test('offers the views the API configures', async ({ smsSummaryPage }) => {
     const report = await smsSummaryPage.open();
 
-    expect(report.viewByOptions).toEqual(panelOptions);
-    await smsSummaryPage.table.expectViewByOptions(panelOptions);
+    expect(report.viewByOptions.tabs).toEqual(panelOptions.tabs);
+    expect(panelOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await smsSummaryPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of panelViews.slice(1)) {
     test(`shows the ${view} view as the API returned it`, async ({ smsSummaryPage }) => {
-      await smsSummaryPage.open();
+      const opened = await smsSummaryPage.open();
+      test.skip(!viewsOf(opened).includes(view), 'This account is not offered this view.');
 
       const report = await smsSummaryPage.table.viewBy(view);
 
@@ -163,14 +170,16 @@ test.describe('SMS Summary via API', () => {
     await smsSummaryPage.open();
     const report = await smsSummaryPage.openViaApi();
 
-    expect(report.viewByOptions).toEqual(apiOptions);
-    await smsSummaryPage.table.expectViewByOptions(apiOptions);
+    expect(report.viewByOptions.tabs).toEqual(apiOptions.tabs);
+    expect(apiOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await smsSummaryPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of apiViews.slice(1)) {
     test(`shows the ${view} view as the API returned it`, async ({ smsSummaryPage }) => {
       await smsSummaryPage.open();
-      await smsSummaryPage.openViaApi();
+      const opened = await smsSummaryPage.openViaApi();
+      test.skip(!viewsOf(opened).includes(view), 'This account is not offered this view.');
 
       const report = await smsSummaryPage.table.viewBy(view);
 

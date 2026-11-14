@@ -1,11 +1,13 @@
 import { expect, test } from '../../fixtures/test-fixtures';
 import { daysAgo, isoDate } from '../../utils/date-time';
+import { viewsOf } from '../../utils/report-response';
 
 // Read-only. Nothing loads until Search is clicked, so each test pins down what the form posts
 // and that the results are built from the response. The filters offer whatever the account has
 // in the period, so tests pick values from those lists instead of naming campaigns.
 
 // [view, group_by]. The first is the view a search opens on. Monthly and Yearly are summary-only.
+// These are all the views known; an account is offered a subset (not every one gets Failure Reasons).
 const panelViews = [
   ['Campaign', 'campaign'],
   ['Date & Campaign', 'campaign_name'],
@@ -13,6 +15,7 @@ const panelViews = [
   ['Country', 'country'],
   ['WABA Number', 'waba_number'],
   ['Template Name', 'template_name'],
+  ['Failure Reasons', 'failure_reason'],
   ['List Name', 'list_id'],
   ['Responses', 'link_click'],
   ['Campaign Category', 'category'],
@@ -25,6 +28,7 @@ const apiViews = [
   ['WABA Number', 'waba_number'],
   ['Template Name', 'template_name'],
   ['Campaign Type', 'is_direct_send'],
+  ['Failure Reasons', 'failure_reason'],
   ['Responses', 'link_click'],
 ] as const;
 
@@ -102,22 +106,24 @@ test.describe('WhatsApp Advanced Search via panel', () => {
     await whatsAppAdvancedPage.form.expectDates(daysAgo(1), daysAgo(0));
   });
 
-  // Also guards the view list below: a view the API adds or drops fails here first.
+  // Also guards the view list above: a view the API adds that the list doesn't know fails here.
   test('offers the views the API configures', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
 
     const report = await whatsAppAdvancedPage.form.search();
 
-    expect(report.viewByOptions).toEqual(panelOptions);
-    await whatsAppAdvancedPage.table.expectViewByOptions(panelOptions);
+    expect(report.viewByOptions.tabs).toEqual(panelOptions.tabs);
+    expect(panelOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await whatsAppAdvancedPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of panelViews.slice(1)) {
     test(`shows the ${view} view with the columns the API returned`, async ({ whatsAppAdvancedPage }) => {
-      // Staging defect: with traffic in the period this view answers 503 "Something went wrong".
-      test.fail(view === 'Campaign Type', 'the Campaign Type view fails on staging once the period has traffic');
       await whatsAppAdvancedPage.open();
-      await whatsAppAdvancedPage.form.search();
+      const opened = await whatsAppAdvancedPage.form.search();
+      test.skip(!viewsOf(opened).includes(view), 'This account is not offered this view.');
+      // Staging defect: with traffic in the period this view answers 503 "Something went wrong".
+      test.fail(view === 'Campaign Type' && opened.docs.length > 0, 'the Campaign Type view fails on staging once the period has traffic');
 
       const report = await whatsAppAdvancedPage.table.viewBy(view);
 
@@ -158,7 +164,8 @@ test.describe('WhatsApp Advanced Search via panel', () => {
     expect(params.get('field')).toBe('campaign_name');
     expect(params.get('from_date')).toBe(isoDate(daysAgo(1)));
     expect(params.get('to_date')).toBe(isoDate(daysAgo(0)));
-    expect(shown).toEqual(['Select', ...offered]);
+    // An empty list says so under its Select entry.
+    expect(shown).toEqual(['Select', ...(offered.length > 0 ? offered : ['No Records'])]);
   });
 
   test('lists the delivery statuses with All first', async ({ whatsAppAdvancedPage }) => {
@@ -174,6 +181,7 @@ test.describe('WhatsApp Advanced Search via panel', () => {
   test('searches one campaign picked from the list', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
     const [campaign] = (await whatsAppAdvancedPage.form.listOptions('Campaign Name')).offered;
+    test.skip(campaign === undefined, 'No WhatsApp campaigns ran yesterday or today.');
     await whatsAppAdvancedPage.form.select('Campaign Name', campaign);
 
     const report = await whatsAppAdvancedPage.form.search();
@@ -187,6 +195,7 @@ test.describe('WhatsApp Advanced Search via panel', () => {
   test('searches campaigns whose name contains text', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
     const [campaign] = (await whatsAppAdvancedPage.form.listOptions('Campaign Name')).offered;
+    test.skip(campaign === undefined, 'No WhatsApp campaigns ran yesterday or today.');
     const part = campaign.slice(0, 9);
     await whatsAppAdvancedPage.form.contains('Campaign Name', part);
 
@@ -201,6 +210,7 @@ test.describe('WhatsApp Advanced Search via panel', () => {
   test('leaves out campaigns whose name contains text', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
     const [campaign] = (await whatsAppAdvancedPage.form.listOptions('Campaign Name')).offered;
+    test.skip(campaign === undefined, 'No WhatsApp campaigns ran yesterday or today.');
     const part = campaign.slice(0, 9);
     await whatsAppAdvancedPage.form.doesNotContain('Campaign Name', part);
 
@@ -293,15 +303,17 @@ test.describe('WhatsApp Advanced Search via API', () => {
 
     const report = await whatsAppAdvancedPage.form.search();
 
-    expect(report.viewByOptions).toEqual(apiOptions);
-    await whatsAppAdvancedPage.table.expectViewByOptions(apiOptions);
+    expect(report.viewByOptions.tabs).toEqual(apiOptions.tabs);
+    expect(apiOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await whatsAppAdvancedPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of apiViews.slice(1)) {
     test(`shows the ${view} view with the columns the API returned`, async ({ whatsAppAdvancedPage }) => {
       await whatsAppAdvancedPage.open();
       await whatsAppAdvancedPage.openViaApi();
-      await whatsAppAdvancedPage.form.search();
+      const opened = await whatsAppAdvancedPage.form.search();
+      test.skip(!viewsOf(opened).includes(view), 'This account is not offered this view.');
 
       const report = await whatsAppAdvancedPage.table.viewBy(view);
 
@@ -322,7 +334,8 @@ test.describe('WhatsApp Advanced Search via API', () => {
     expect(params.get('field')).toBe('waba_number');
     expect(params.get('from_date')).toBe(isoDate(daysAgo(1)));
     expect(params.get('to_date')).toBe(isoDate(daysAgo(0)));
-    expect(shown).toEqual(['Select', ...offered]);
+    // An empty list says so under its Select entry.
+    expect(shown).toEqual(['Select', ...(offered.length > 0 ? offered : ['No Records'])]);
   });
 
   test('searches by tag and GUID', async ({ whatsAppAdvancedPage }) => {

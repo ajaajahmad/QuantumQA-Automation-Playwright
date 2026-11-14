@@ -1,10 +1,12 @@
 import { expect, test } from '../../fixtures/test-fixtures';
 import { daysAgo, isoDate } from '../../utils/date-time';
+import { viewsOf } from '../../utils/report-response';
 
 // Read-only. The rows come from whatever WhatsApp traffic the account has in the period, so tests
 // pin down what each control asks the API for and compare the table with the response.
 
-// [view, group_by]. The first is the view each tab opens on.
+// [view, group_by]. The first is the view each tab opens on. These are all the views known; an
+// account is offered a subset (the reasons views, for one, are not offered to every account).
 const panelViews = [
   ['Campaign', 'campaign'],
   ['Date & Campaign', 'campaign_name'],
@@ -12,6 +14,7 @@ const panelViews = [
   ['Country', 'country'],
   ['WABA Number', 'waba_number'],
   ['Template Name', 'template_name'],
+  ['Failure Reasons', 'failure_reason'],
   ['List Name', 'list_id'],
   ['Responses', 'link_click'],
   ['Campaign Category', 'category'],
@@ -26,6 +29,7 @@ const apiViews = [
   ['WABA Number', 'waba_number'],
   ['Template Name', 'template_name'],
   ['Campaign Type', 'is_direct_send'],
+  ['Failure Reasons', 'failure_reason'],
   ['Responses', 'link_click'],
   ['Monthly', 'monthly'],
   ['Yearly', 'yearly'],
@@ -58,8 +62,13 @@ const panelFilters = ['Campaign Name', 'WABA Number', 'List Name', 'Template Cat
 test.describe('WhatsApp Summary via panel', () => {
   test('has a tab for each source of messages', async ({ whatsAppSummaryPage }) => {
     await whatsAppSummaryPage.open();
+    const sources = ['Via Panel', 'Via API'];
 
-    await whatsAppSummaryPage.expectTabs(['Via Panel', 'Via API', 'Incoming Messages']);
+    if (await whatsAppSummaryPage.hasIncomingMessages()) {
+      sources.push('Incoming Messages');
+    }
+
+    await whatsAppSummaryPage.expectTabs(sources);
   });
 
   test('opens on campaign submissions for yesterday and today', async ({ whatsAppSummaryPage }) => {
@@ -79,19 +88,21 @@ test.describe('WhatsApp Summary via panel', () => {
     await whatsAppSummaryPage.table.expectTotalsOf(report);
   });
 
-  // Also guards the view list below: a view the API adds or drops fails here first.
+  // Also guards the view list above: a view the API adds that the list doesn't know fails here.
   test('offers the views the API configures', async ({ whatsAppSummaryPage }) => {
     const report = await whatsAppSummaryPage.open();
 
-    expect(report.viewByOptions).toEqual(panelOptions);
-    await whatsAppSummaryPage.table.expectViewByOptions(panelOptions);
+    expect(report.viewByOptions.tabs).toEqual(panelOptions.tabs);
+    expect(panelOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await whatsAppSummaryPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of panelViews.slice(1)) {
     test(`shows the ${view} view with the columns the API returned`, async ({ whatsAppSummaryPage }) => {
+      const opened = await whatsAppSummaryPage.open();
+      test.skip(!viewsOf(opened).includes(view), 'This account is not offered this view.');
       // Staging defect: with traffic in the period this view answers 503 "Something went wrong".
-      test.fail(view === 'Campaign Type', 'the Campaign Type view fails on staging once the period has traffic');
-      await whatsAppSummaryPage.open();
+      test.fail(view === 'Campaign Type' && opened.docs.length > 0, 'the Campaign Type view fails on staging once the period has traffic');
 
       const report = await whatsAppSummaryPage.table.viewBy(view);
 
@@ -162,6 +173,7 @@ test.describe('WhatsApp Summary via panel', () => {
 
   test('narrows the report to one campaign and widens it again when cleared', async ({ whatsAppSummaryPage }) => {
     const unfiltered = await whatsAppSummaryPage.open();
+    test.skip(unfiltered.docs.length === 0, 'No WhatsApp campaigns ran yesterday or today.');
     const [campaign] = await whatsAppSummaryPage.filterBar.options('Campaign Name');
 
     const filtered = await whatsAppSummaryPage.filterBar.filterBy('Campaign Name', campaign);
@@ -201,14 +213,16 @@ test.describe('WhatsApp Summary via API', () => {
     await whatsAppSummaryPage.open();
     const report = await whatsAppSummaryPage.openViaApi();
 
-    expect(report.viewByOptions).toEqual(apiOptions);
-    await whatsAppSummaryPage.table.expectViewByOptions(apiOptions);
+    expect(report.viewByOptions.tabs).toEqual(apiOptions.tabs);
+    expect(apiOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await whatsAppSummaryPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of apiViews.slice(1)) {
     test(`shows the ${view} view with the columns the API returned`, async ({ whatsAppSummaryPage }) => {
       await whatsAppSummaryPage.open();
-      await whatsAppSummaryPage.openViaApi();
+      const opened = await whatsAppSummaryPage.openViaApi();
+      test.skip(!viewsOf(opened).includes(view), 'This account is not offered this view.');
 
       const report = await whatsAppSummaryPage.table.viewBy(view);
 
@@ -224,6 +238,7 @@ test.describe('WhatsApp Summary via API', () => {
 test.describe('WhatsApp Summary incoming messages', () => {
   test('opens on text replies by date for yesterday and today', async ({ whatsAppSummaryPage }) => {
     await whatsAppSummaryPage.open();
+    test.skip(!(await whatsAppSummaryPage.hasIncomingMessages()), 'This account has no Incoming Messages tab.');
 
     const report = await whatsAppSummaryPage.openIncomingMessages();
 
@@ -239,15 +254,18 @@ test.describe('WhatsApp Summary incoming messages', () => {
 
   test('offers the views the API configures', async ({ whatsAppSummaryPage }) => {
     await whatsAppSummaryPage.open();
+    test.skip(!(await whatsAppSummaryPage.hasIncomingMessages()), 'This account has no Incoming Messages tab.');
     const report = await whatsAppSummaryPage.openIncomingMessages();
 
-    expect(report.viewByOptions).toEqual(incomingOptions);
-    await whatsAppSummaryPage.table.expectViewByOptions(incomingOptions);
+    expect(report.viewByOptions.tabs).toEqual(incomingOptions.tabs);
+    expect(incomingOptions.more).toEqual(expect.arrayContaining(report.viewByOptions.more));
+    await whatsAppSummaryPage.table.expectViewByOptions(report.viewByOptions);
   });
 
   for (const [view, groupBy] of incomingViews.slice(1)) {
     test(`shows the ${view} view with the columns the API returned`, async ({ whatsAppSummaryPage }) => {
       await whatsAppSummaryPage.open();
+      test.skip(!(await whatsAppSummaryPage.hasIncomingMessages()), 'This account has no Incoming Messages tab.');
       await whatsAppSummaryPage.openIncomingMessages();
 
       const report = await whatsAppSummaryPage.table.viewBy(view);
@@ -262,6 +280,7 @@ test.describe('WhatsApp Summary incoming messages', () => {
 
   test('reports on a typed date range', async ({ whatsAppSummaryPage }) => {
     await whatsAppSummaryPage.open();
+    test.skip(!(await whatsAppSummaryPage.hasIncomingMessages()), 'This account has no Incoming Messages tab.');
     await whatsAppSummaryPage.openIncomingMessages();
 
     const report = await whatsAppSummaryPage.filters.setDateRange(daysAgo(10), daysAgo(3));

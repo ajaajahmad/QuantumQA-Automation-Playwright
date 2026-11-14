@@ -22,6 +22,42 @@ export const whatsAppAdvanced: AdvancedReport = {
   viaApiOptions: '/api/v1/whatsapp-api-mis/advanced-summary-api-filter-option-by-field',
 };
 
+export const smsAdvanced: AdvancedReport = {
+  heading: 'SMS Advance Search',
+  path: '/reports/sms/advanced',
+  viaPanelSearch: '/api/v1/sms-mis/sms-advanced-summary',
+  viaApiSearch: '/api/v1/sms-mis/sms-api-advanced-summary',
+  viaPanelOptions: '/api/v1/sms-mis/advanced-summary-filter-option-by-field',
+  viaApiOptions: '/api/v1/sms-mis/advanced-summary-api-filter-option-by-field',
+};
+
+export const rcsAdvanced: AdvancedReport = {
+  heading: 'RCS Advance Search',
+  path: '/reports/rcs/advanced',
+  viaPanelSearch: '/api/v1/rcs-mis/rcs-advanced-summary',
+  viaApiSearch: '/api/v1/rcs-api-mis/rcs-advanced-summary',
+  viaPanelOptions: '/api/v1/rcs-mis/advanced-summary-filter-option-by-field',
+  viaApiOptions: '/api/v1/rcs-api-mis/advanced-summary-filter-option-by-field',
+};
+
+export const truecallerAdvanced: AdvancedReport = {
+  heading: 'Truecaller Advanced Search',
+  path: '/reports/truecaller/advanced',
+  viaPanelSearch: '/api/v1/truecaller-mis/truecaller-advanced-summary',
+  viaApiSearch: '/api/v1/truecaller-api-mis/truecaller-api-advanced-summary',
+  viaPanelOptions: '/api/v1/truecaller-mis/advanced-summary-filter-option-by-field',
+  viaApiOptions: '/api/v1/truecaller-api-mis/advanced-summary-api-filter-option-by-field',
+};
+
+export const emailAdvanced: AdvancedReport = {
+  heading: 'Email Advanced',
+  path: '/reports/email/advanced',
+  viaPanelSearch: '/api/v1/email-mis/email-advanced-summary',
+  viaApiSearch: '/api/v1/email-api-mis/email-api-advanced-summary',
+  viaPanelOptions: '/api/v1/email-mis/advanced-summary-filter-option-by-field',
+  viaApiOptions: '/api/v1/email-api-mis/advanced-summary-api-filter-option-by-field',
+};
+
 // Reports > <channel> > Advanced. Both tabs show a search form and, once searched, the same
 // view-by bar and table as the summary reports; each tab posts to its own endpoint.
 export class AdvancedReportPage {

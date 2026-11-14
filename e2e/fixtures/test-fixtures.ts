@@ -7,8 +7,22 @@ import { SideNav } from '../pages/components/side-nav.component';
 import { DashboardPage } from '../pages/dashboard/dashboard.page';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
-import { AdvancedReportPage, whatsAppAdvanced } from '../pages/reports/advanced-report.page';
-import { smsSummary, SummaryReportPage, whatsAppSummary } from '../pages/reports/summary-report.page';
+import {
+  AdvancedReportPage,
+  emailAdvanced,
+  rcsAdvanced,
+  smsAdvanced,
+  truecallerAdvanced,
+  whatsAppAdvanced,
+} from '../pages/reports/advanced-report.page';
+import {
+  emailSummary,
+  rcsSummary,
+  smsSummary,
+  SummaryReportPage,
+  truecallerSummary,
+  whatsAppSummary,
+} from '../pages/reports/summary-report.page';
 import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
 import { CreateTemplatePage } from '../pages/sms/create-template.page';
 import { SenderIdsPage } from '../pages/sms/sender-ids.page';
@@ -34,6 +48,13 @@ type QuantumFixtures = {
   whatsAppSummaryPage: SummaryReportPage;
   smsSummaryPage: SummaryReportPage;
   whatsAppAdvancedPage: AdvancedReportPage;
+  smsAdvancedPage: AdvancedReportPage;
+  rcsSummaryPage: SummaryReportPage;
+  rcsAdvancedPage: AdvancedReportPage;
+  truecallerSummaryPage: SummaryReportPage;
+  truecallerAdvancedPage: AdvancedReportPage;
+  emailSummaryPage: SummaryReportPage;
+  emailAdvancedPage: AdvancedReportPage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -123,6 +144,27 @@ export const test = base.extend<QuantumFixtures>({
   },
   whatsAppAdvancedPage: async ({ page }, use) => {
     await use(new AdvancedReportPage(page, whatsAppAdvanced));
+  },
+  smsAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, smsAdvanced));
+  },
+  rcsSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, rcsSummary));
+  },
+  rcsAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, rcsAdvanced));
+  },
+  truecallerSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, truecallerSummary));
+  },
+  truecallerAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, truecallerAdvanced));
+  },
+  emailSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, emailSummary));
+  },
+  emailAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, emailAdvanced));
   },
 });
 

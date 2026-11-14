@@ -30,6 +30,27 @@ export const smsSummary: SummaryReport = {
   viaApiReport: '/api/v1/sms-api-mis',
 };
 
+export const rcsSummary: SummaryReport = {
+  heading: 'RCS Summary',
+  path: '/reports/rcs/summary',
+  viaPanelReport: '/api/v1/rcs-mis/viewby-campaign',
+  viaApiReport: '/api/v1/rcs-api-mis',
+};
+
+export const truecallerSummary: SummaryReport = {
+  heading: 'Truecaller Summary',
+  path: '/reports/truecaller/summary',
+  viaPanelReport: '/api/v1/truecaller-mis/viewby-campaign',
+  viaApiReport: '/api/v1/truecaller-api-mis',
+};
+
+export const emailSummary: SummaryReport = {
+  heading: 'Email Summary',
+  path: '/reports/email/summary',
+  viaPanelReport: '/api/v1/email-mis/viewby-campaign',
+  viaApiReport: '/api/v1/email-api-mis',
+};
+
 // Reports > <channel> > Summary. The tabs share the filters and table; each loads its own endpoint.
 export class SummaryReportPage {
   readonly filters: ReportFiltersComponent;
@@ -84,6 +105,11 @@ export class SummaryReportPage {
     const report = await waitForReport(this.page, [this.report.viaIncomingReport], () => this.incomingMessagesTab.click());
     await expect(this.page).toHaveURL(new RegExp(`${this.report.path}/via-incoming-messages$`));
     return report;
+  }
+
+  // The tab is there only for accounts with two-way messaging switched on.
+  async hasIncomingMessages(): Promise<boolean> {
+    return this.incomingMessagesTab.isVisible();
   }
 
   async expectTabs(tabs: string[]): Promise<void> {
