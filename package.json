@@ -8,6 +8,7 @@
   },
   "scripts": {
     "test": "playwright test",
+    "test:headed": "HEADED=1 playwright test",
     "test:ui": "playwright test --ui",
     "auth:setup": "playwright test --project=auth-setup",
     "test:sms-campaign": "playwright test e2e/specs/campaign/create-sms-campaign.spec.ts",
