@@ -7,8 +7,20 @@ import { SideNav } from '../pages/components/side-nav.component';
 import { DashboardPage } from '../pages/dashboard/dashboard.page';
 import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
-import { AdvancedReportPage, rcsAdvanced, smsAdvanced, whatsAppAdvanced } from '../pages/reports/advanced-report.page';
-import { rcsSummary, smsSummary, SummaryReportPage, whatsAppSummary } from '../pages/reports/summary-report.page';
+import {
+  AdvancedReportPage,
+  rcsAdvanced,
+  smsAdvanced,
+  truecallerAdvanced,
+  whatsAppAdvanced,
+} from '../pages/reports/advanced-report.page';
+import {
+  rcsSummary,
+  smsSummary,
+  SummaryReportPage,
+  truecallerSummary,
+  whatsAppSummary,
+} from '../pages/reports/summary-report.page';
 import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
 import { CreateTemplatePage } from '../pages/sms/create-template.page';
 import { SenderIdsPage } from '../pages/sms/sender-ids.page';
@@ -37,6 +49,8 @@ type QuantumFixtures = {
   smsAdvancedPage: AdvancedReportPage;
   rcsSummaryPage: SummaryReportPage;
   rcsAdvancedPage: AdvancedReportPage;
+  truecallerSummaryPage: SummaryReportPage;
+  truecallerAdvancedPage: AdvancedReportPage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -135,6 +149,12 @@ export const test = base.extend<QuantumFixtures>({
   },
   rcsAdvancedPage: async ({ page }, use) => {
     await use(new AdvancedReportPage(page, rcsAdvanced));
+  },
+  truecallerSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, truecallerSummary));
+  },
+  truecallerAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, truecallerAdvanced));
   },
 });
 
