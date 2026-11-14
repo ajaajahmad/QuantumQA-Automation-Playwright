@@ -155,6 +155,11 @@ async function readReport(request: Request): Promise<ReportResponse> {
   };
 }
 
+// Every view the report offers, on the bar or under More. Which views an account gets differs.
+export function viewsOf(report: ReportResponse): string[] {
+  return [...report.viewByOptions.tabs, ...report.viewByOptions.more];
+}
+
 // Runs the action and returns the first report it requests. The page loads each report twice
 // on open, so waiting for a request issued after the action skips any still-pending load.
 export async function waitForReport(
