@@ -174,6 +174,7 @@ test.describe('WhatsApp Advanced Search via panel', () => {
   test('searches one campaign picked from the list', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
     const [campaign] = (await whatsAppAdvancedPage.form.listOptions('Campaign Name')).offered;
+    test.skip(campaign === undefined, 'No WhatsApp campaigns ran yesterday or today.');
     await whatsAppAdvancedPage.form.select('Campaign Name', campaign);
 
     const report = await whatsAppAdvancedPage.form.search();
@@ -187,6 +188,7 @@ test.describe('WhatsApp Advanced Search via panel', () => {
   test('searches campaigns whose name contains text', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
     const [campaign] = (await whatsAppAdvancedPage.form.listOptions('Campaign Name')).offered;
+    test.skip(campaign === undefined, 'No WhatsApp campaigns ran yesterday or today.');
     const part = campaign.slice(0, 9);
     await whatsAppAdvancedPage.form.contains('Campaign Name', part);
 
@@ -201,6 +203,7 @@ test.describe('WhatsApp Advanced Search via panel', () => {
   test('leaves out campaigns whose name contains text', async ({ whatsAppAdvancedPage }) => {
     await whatsAppAdvancedPage.open();
     const [campaign] = (await whatsAppAdvancedPage.form.listOptions('Campaign Name')).offered;
+    test.skip(campaign === undefined, 'No WhatsApp campaigns ran yesterday or today.');
     const part = campaign.slice(0, 9);
     await whatsAppAdvancedPage.form.doesNotContain('Campaign Name', part);
 
