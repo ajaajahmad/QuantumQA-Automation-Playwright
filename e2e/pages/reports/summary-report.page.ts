@@ -44,6 +44,13 @@ export const truecallerSummary: SummaryReport = {
   viaApiReport: '/api/v1/truecaller-api-mis',
 };
 
+export const emailSummary: SummaryReport = {
+  heading: 'Email Summary',
+  path: '/reports/email/summary',
+  viaPanelReport: '/api/v1/email-mis/viewby-campaign',
+  viaApiReport: '/api/v1/email-api-mis',
+};
+
 // Reports > <channel> > Summary. The tabs share the filters and table; each loads its own endpoint.
 export class SummaryReportPage {
   readonly filters: ReportFiltersComponent;
