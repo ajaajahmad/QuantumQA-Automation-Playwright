@@ -9,12 +9,14 @@ import { ForgotPasswordPage } from '../pages/login/forgot-password.page';
 import { LoginPage } from '../pages/login/login.page';
 import {
   AdvancedReportPage,
+  emailAdvanced,
   rcsAdvanced,
   smsAdvanced,
   truecallerAdvanced,
   whatsAppAdvanced,
 } from '../pages/reports/advanced-report.page';
 import {
+  emailSummary,
   rcsSummary,
   smsSummary,
   SummaryReportPage,
@@ -51,6 +53,8 @@ type QuantumFixtures = {
   rcsAdvancedPage: AdvancedReportPage;
   truecallerSummaryPage: SummaryReportPage;
   truecallerAdvancedPage: AdvancedReportPage;
+  emailSummaryPage: SummaryReportPage;
+  emailAdvancedPage: AdvancedReportPage;
 };
 
 export const test = base.extend<QuantumFixtures>({
@@ -155,6 +159,12 @@ export const test = base.extend<QuantumFixtures>({
   },
   truecallerAdvancedPage: async ({ page }, use) => {
     await use(new AdvancedReportPage(page, truecallerAdvanced));
+  },
+  emailSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, emailSummary));
+  },
+  emailAdvancedPage: async ({ page }, use) => {
+    await use(new AdvancedReportPage(page, emailAdvanced));
   },
 });
 
