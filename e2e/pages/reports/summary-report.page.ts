@@ -37,6 +37,13 @@ export const rcsSummary: SummaryReport = {
   viaApiReport: '/api/v1/rcs-api-mis',
 };
 
+export const truecallerSummary: SummaryReport = {
+  heading: 'Truecaller Summary',
+  path: '/reports/truecaller/summary',
+  viaPanelReport: '/api/v1/truecaller-mis/viewby-campaign',
+  viaApiReport: '/api/v1/truecaller-api-mis',
+};
+
 // Reports > <channel> > Summary. The tabs share the filters and table; each loads its own endpoint.
 export class SummaryReportPage {
   readonly filters: ReportFiltersComponent;
