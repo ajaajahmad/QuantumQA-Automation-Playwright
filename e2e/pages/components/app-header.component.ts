@@ -20,7 +20,8 @@ export class AppHeader {
     this.languageButton = page.getByRole('button', { name: 'English' });
     this.arabicOption = page.getByText('Arabic (AR)');
     this.profileButton = page.locator('.user-name-alias');
-    this.profileMenu = page.locator('.user-dropdown');
+    // The header has other menus with the same class; the profile one is the one with Logout.
+    this.profileMenu = page.locator('.user-dropdown').filter({ has: page.getByText('Logout', { exact: true }) });
     this.profileName = this.profileMenu.locator('> .dropdown-item').first();
     // Settings opens a nested menu on hover rather than navigating itself.
     this.settingsMenu = this.profileMenu.locator('.settings-menu');
