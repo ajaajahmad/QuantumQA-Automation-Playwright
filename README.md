@@ -96,7 +96,7 @@ config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects
-  pages/           page objects by UI area (login, dashboard, sms, campaign, reports) and shared components
+  pages/           page objects by UI area (login, dashboard, sms, campaign, reports, users) and shared components
   specs/           test specs
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers
@@ -105,10 +105,9 @@ playwright.config.ts
 
 ## Migration Status
 
-Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), SMS sender IDs and templates (list, search, page size, form validation, cancel, and create, edit and delete with duplicate and format checks), SMS campaigns (list, search, page size, create-form validation, and sending a campaign), the SMS, WhatsApp, RCS, Truecaller and Email summary reports (every tab and view, counts, custom, monthly and yearly periods, the filter bar, and page size, each checked against the request it sends and the columns, cells and totals the API returns; WhatsApp also covers incoming messages), and the SMS, WhatsApp, RCS, Truecaller and Email advanced search (both tabs: the fields and their lists, searching by picked value, contained text, mobile number, status, tag and GUID, every view, counts, dates, and page size, checked against what Search posts and the table it builds). Still to migrate from the Java suite:
+Ported so far: login (valid login and logout, field validation, password visibility, Enter to submit, 2FA wrong OTP and cancel, session redirects), forgot password (field validation, OTP checks, password policy, cancel on each screen, and an on-demand real reset), dashboard (tabs, currency balance, carousels, header menus, Settings pages, side navigation), SMS sender IDs and templates (list, search, page size, form validation, cancel, and create, edit and delete with duplicate and format checks), SMS campaigns (list, search, page size, create-form validation, and sending a campaign), the SMS, WhatsApp, RCS, Truecaller and Email summary reports (every tab and view, counts, custom, monthly and yearly periods, the filter bar, and page size, each checked against the request it sends and the columns, cells and totals the API returns; WhatsApp also covers incoming messages), and the SMS, WhatsApp, RCS, Truecaller and Email advanced search (both tabs: the fields and their lists, searching by picked value, contained text, mobile number, status, tag and GUID, every view, counts, dates, and page size, checked against what Search posts and the table it builds), and the SMS, WhatsApp, RCS, Truecaller and Email Account MIS pages (both tabs: the fields and their lists including Username, searching by picked value, contained text, mobile number and status, every view, counts, dates, and page size, checked the same way). Still to migrate from the Java suite:
 
 1. WhatsApp campaigns
-2. Account MIS pages
 
 Locators are still mostly XPath carried over from Selenium. For new and touched code, prefer Playwright role, label, text, and test-id locators where the app exposes them.
 
