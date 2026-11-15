@@ -2,7 +2,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { isoDate } from '../../utils/date-time';
 import { waitForReport, type ReportResponse } from '../../utils/report-response';
 
-// The dates and filters of an advanced report, which only load a report once Search is clicked.
+// The dates and filters of an advanced report or an Account MIS page, which only load a report
+// once Search is clicked.
 // A list field offers the values the account has in the period, fetched when its list opens; the
 // fields with a mode can instead match text (Contains, Does Not Contain). The form collapses to
 // its dates once a search runs and expands again from the arrow.
@@ -15,12 +16,14 @@ export class AdvancedSearchForm {
   private readonly searchButton: Locator;
 
   // searchPaths are the POST endpoints Search loads; optionPaths the GET endpoints a list opens.
+  // host is the page component the form sits in.
   constructor(
     private readonly page: Page,
     private readonly searchPaths: string[],
     private readonly optionPaths: string[],
+    host = 'app-advanced',
   ) {
-    this.form = page.locator('app-advanced app-search');
+    this.form = page.locator(`${host} app-search`);
     this.panel = this.form.locator('mat-expansion-panel');
     this.toggle = this.form.locator('.icon-Down_arrow');
     this.startDate = this.form.getByPlaceholder('Select Date').first();
