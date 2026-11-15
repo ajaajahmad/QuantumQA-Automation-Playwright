@@ -38,7 +38,7 @@ import {
 import { readAccessToken, readSessionState } from '../utils/auth-state';
 import { appConfig } from '../utils/config';
 
-type QuantumFixtures = {
+type AppFixtures = {
   useAuthenticatedSession: boolean;
   api: APIRequestContext;
   loginPage: LoginPage;
@@ -70,7 +70,7 @@ type QuantumFixtures = {
   emailAccountMisPage: AccountMisPage;
 };
 
-export const test = base.extend<QuantumFixtures>({
+export const test = base.extend<AppFixtures>({
   useAuthenticatedSession: [true, { option: true }],
   context: async ({ context, useAuthenticatedSession }, use) => {
     if (useAuthenticatedSession) {
