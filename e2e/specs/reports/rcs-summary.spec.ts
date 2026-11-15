@@ -49,8 +49,13 @@ const panelFilters = ['Campaign Name', 'RBM Agent Name', 'List Name', 'Content T
 test.describe('RCS Summary via panel', () => {
   test('has a tab for each source of messages', async ({ rcsSummaryPage }) => {
     await rcsSummaryPage.open();
+    const sources = ['Via Panel', 'Via API'];
 
-    await rcsSummaryPage.expectTabs(['Via Panel', 'Via API']);
+    if (await rcsSummaryPage.hasIncomingMessages()) {
+      sources.push('Incoming Messages');
+    }
+
+    await rcsSummaryPage.expectTabs(sources);
   });
 
   test('opens on campaign submissions for yesterday and today', async ({ rcsSummaryPage }) => {
