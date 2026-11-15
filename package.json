@@ -1,8 +1,8 @@
 {
-  "name": "quantumqa-automation-playwright",
+  "name": "messaging-platform-playwright-e2e",
   "version": "1.0.0",
   "private": true,
-  "description": "Playwright TypeScript end-to-end tests for the QuantumQA automation framework.",
+  "description": "Playwright TypeScript end-to-end tests for a web messaging platform.",
   "engines": {
     "node": ">=26"
   },
