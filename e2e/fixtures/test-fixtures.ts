@@ -27,10 +27,18 @@ import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
 import { CreateTemplatePage } from '../pages/sms/create-template.page';
 import { SenderIdsPage } from '../pages/sms/sender-ids.page';
 import { TemplatesPage } from '../pages/sms/templates.page';
+import {
+  AccountMisPage,
+  emailAccountMis,
+  rcsAccountMis,
+  smsAccountMis,
+  truecallerAccountMis,
+  whatsAppAccountMis,
+} from '../pages/users/account-mis.page';
 import { readAccessToken, readSessionState } from '../utils/auth-state';
 import { appConfig } from '../utils/config';
 
-type QuantumFixtures = {
+type AppFixtures = {
   useAuthenticatedSession: boolean;
   api: APIRequestContext;
   loginPage: LoginPage;
@@ -55,9 +63,14 @@ type QuantumFixtures = {
   truecallerAdvancedPage: AdvancedReportPage;
   emailSummaryPage: SummaryReportPage;
   emailAdvancedPage: AdvancedReportPage;
+  smsAccountMisPage: AccountMisPage;
+  whatsAppAccountMisPage: AccountMisPage;
+  rcsAccountMisPage: AccountMisPage;
+  truecallerAccountMisPage: AccountMisPage;
+  emailAccountMisPage: AccountMisPage;
 };
 
-export const test = base.extend<QuantumFixtures>({
+export const test = base.extend<AppFixtures>({
   useAuthenticatedSession: [true, { option: true }],
   context: async ({ context, useAuthenticatedSession }, use) => {
     if (useAuthenticatedSession) {
@@ -165,6 +178,21 @@ export const test = base.extend<QuantumFixtures>({
   },
   emailAdvancedPage: async ({ page }, use) => {
     await use(new AdvancedReportPage(page, emailAdvanced));
+  },
+  smsAccountMisPage: async ({ page }, use) => {
+    await use(new AccountMisPage(page, smsAccountMis));
+  },
+  whatsAppAccountMisPage: async ({ page }, use) => {
+    await use(new AccountMisPage(page, whatsAppAccountMis));
+  },
+  rcsAccountMisPage: async ({ page }, use) => {
+    await use(new AccountMisPage(page, rcsAccountMis));
+  },
+  truecallerAccountMisPage: async ({ page }, use) => {
+    await use(new AccountMisPage(page, truecallerAccountMis));
+  },
+  emailAccountMisPage: async ({ page }, use) => {
+    await use(new AccountMisPage(page, emailAccountMis));
   },
 });
 

@@ -1,13 +1,14 @@
 {
-  "name": "quantumqa-automation-playwright",
+  "name": "messaging-platform-playwright-e2e",
   "version": "1.0.0",
   "private": true,
-  "description": "Playwright TypeScript end-to-end tests for the QuantumQA automation framework.",
+  "description": "Playwright TypeScript end-to-end tests for a web messaging platform.",
   "engines": {
     "node": ">=26"
   },
   "scripts": {
     "test": "playwright test",
+    "test:headed": "HEADED=1 playwright test",
     "test:ui": "playwright test --ui",
     "auth:setup": "playwright test --project=auth-setup",
     "test:sms-campaign": "playwright test e2e/specs/campaign/create-sms-campaign.spec.ts",

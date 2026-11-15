@@ -3,8 +3,8 @@ import { appConfig } from './e2e/utils/config';
 import { storageStatePath } from './e2e/utils/auth-state';
 
 const browserName = 'chromium';
-// Headed locally; CI runners have no display, so run headless there.
-const headless = !!process.env.CI;
+// Headless by default, as Playwright itself is. HEADED=1 opens the browser (npm run test:headed).
+const headless = process.env.HEADED !== '1';
 
 export default defineConfig({
   testDir: './e2e',
