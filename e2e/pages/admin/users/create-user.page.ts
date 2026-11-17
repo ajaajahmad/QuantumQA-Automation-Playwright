@@ -1,7 +1,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import { appConfig } from '../../../utils/config';
 import { AdminSideNav } from '../components/admin-side-nav.component';
-import { readSaveResult, type SaveResult, UserForm } from '../components/user-form.component';
+import { readSaveResult, type SaveResult, type SmppSettings, UserForm } from '../components/user-form.component';
 
 export type NewAdminUser = {
   organization: string;
@@ -16,10 +16,12 @@ export type NewAdminUser = {
   timeZone: string;
   country: string;
   expiresInYear: number;
+  // Left out, the user is created with SMPP off.
+  smpp?: SmppSettings;
 };
 
 // Users > Create User. Writes are allowed on this page only (the user's grant, 2026-11-17); the
-// specs that use it run in the opt-in admin-write project. SMPP stays off.
+// specs that use it run in the opt-in admin-write project.
 export class CreateUserPage {
   readonly sideNav: AdminSideNav;
   readonly form: UserForm;
@@ -70,9 +72,13 @@ export class CreateUserPage {
     await this.form.pickFirst('Daily Threshold Check');
     await this.form.pickFirst('Sales Head');
     await this.form.pickFirst('Business Account Manager');
+
+    if (user.smpp) {
+      await this.form.enterSmpp(user.smpp);
+    }
   }
 
-  // Returns what the server said; the page itself shows nothing for some failures.
+  // Returns what the server said to POST users.
   async save(): Promise<SaveResult> {
     const [response] = await Promise.all([
       this.page.waitForResponse(
@@ -95,6 +101,10 @@ export class CreateUserPage {
     await expect(this.page).toHaveURL(/#\/organizations\/user\/edit\/\d+$/);
     await this.form.expectText('username', user.username);
     await this.form.expectText('email', user.email);
+
+    if (user.smpp) {
+      await this.form.expectSmpp(user.smpp);
+    }
   }
 
   async cancel(): Promise<void> {
