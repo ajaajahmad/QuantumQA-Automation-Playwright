@@ -4,6 +4,9 @@ import path from 'node:path';
 type AppConfig = {
   appUrl: string;
   apiUrl: string;
+  // Empty when admin_url isn't set, so a run without admin specs needs no admin settings.
+  adminUrl: string;
+  adminApiUrl: string;
   timeoutMs: number;
   campaignCategory: string;
   smsSenderId: string;
@@ -21,10 +24,14 @@ if (!fs.existsSync(configPath)) {
 }
 
 const properties = readProperties(configPath);
+const adminUrl = toFolderUrl(getConfigValue('admin_url', 'ADMIN_URL', ''));
 
 export const appConfig: AppConfig = {
   appUrl: getConfigValue('app_url', 'APP_URL', 'https://example.com'),
   apiUrl: getRequiredConfigValue('api_url', 'API_URL'),
+  adminUrl,
+  // The admin panel serves its own API under its folder, e.g. <admin_url>api/v1/settings.
+  adminApiUrl: adminUrl && new URL('api/v1', adminUrl).toString(),
   timeoutMs: parseTimeoutSeconds(getConfigValue('timeout', 'TIMEOUT_SECONDS', '30')) * 1000,
   campaignCategory: getConfigValue('campaign_category', 'CAMPAIGN_CATEGORY', 'automation'),
   smsSenderId: getConfigValue('sms_sender_id', 'SMS_SENDER_ID', ''),
@@ -50,6 +57,16 @@ function getRequiredConfigValue(propertyKey: string, envKey: string): string {
   return value.replace(/\/+$/, '');
 }
 
+// Admin specs call this before using adminUrl, so a missing key fails with a pointer to the README
+// instead of a navigation to an empty URL.
+export function requireAdminUrl(): string {
+  if (!appConfig.adminUrl) {
+    throw new Error(`Missing admin_url in ${configPath}. See the Setup section of the README.`);
+  }
+
+  return appConfig.adminUrl;
+}
+
 // Sets one key in qa.properties, replacing its line or appending it, and keeps every other line as is.
 export function saveConfigValue(propertyKey: string, value: string): void {
   if (properties[propertyKey] === value) {
@@ -69,6 +86,20 @@ export function saveConfigValue(propertyKey: string, value: string): void {
   fs.writeFileSync(tempPath, `${lines.join('\n')}\n`, 'utf8');
   fs.renameSync(tempPath, configPath);
   properties[propertyKey] = value;
+}
+
+// The admin panel routes with a hash (#/auth/login). Keeps only its folder, ending in a slash,
+// so '#/...' routes and 'api/v1' both resolve under it whatever form the URL was given in.
+function toFolderUrl(value: string): string {
+  if (!value) {
+    return '';
+  }
+
+  const url = new URL(value);
+  url.hash = '';
+  url.search = '';
+  url.pathname = url.pathname.replace(/\/*$/, '/');
+  return url.toString();
 }
 
 function parseTimeoutSeconds(value: string): number {

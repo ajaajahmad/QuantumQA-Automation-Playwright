@@ -18,13 +18,14 @@ npm install
 npx playwright install chromium
 ```
 
-Create two local files. Both are gitignored, so credentials never get committed.
+Create two local files, plus a third for the admin panel specs. All are gitignored, so credentials never get committed.
 
-`config/qa.properties`: the app URL, the API host the app calls (`api_url`, required), timeout in seconds, the campaign category, and the SMS/WhatsApp contact list and template names the tests use.
+`config/qa.properties`: the app URL, the API host the app calls (`api_url`, required), the admin panel URL (`admin_url`, needed only by the admin specs), timeout in seconds, the campaign category, and the SMS/WhatsApp contact list and template names the tests use.
 
 ```properties
 app_url=<app-login-url>
 api_url=<api-host-the-app-calls>
+admin_url=<admin-panel-url>
 timeout=20
 campaign_category=<campaign-category>
 sms_sender_id=<sms-sender-id>
@@ -49,11 +50,23 @@ waba_template_name=<whatsapp-template>
 
 `one_time_password` is the static OTP staging accepts. It is needed for any user with two-factor authentication on, and by the forgot-password spec. `mobile_last_four_digits` is the last 4 digits of the account's registered mobile number, used only by the forgot-password spec. That spec uses the first row that has both, and is skipped if none does.
 
+`e2e/test-data/admin-userdata.json`: the admin panel account. It is kept out of `userdata.json` because the login spec logs in with every row there. The admin panel always asks for an OTP.
+
+```json
+{
+  "username": "<admin-username>",
+  "password": "<admin-password>",
+  "one_time_password": "<admin-otp>"
+}
+```
+
+`admin_url` can be the admin panel's login URL or its folder; the specs keep only the folder and reach its API under `api/v1`. `npm test` runs the admin projects too, and without `admin_url` or this file they fail with a pointer to this section. Run other projects by name to skip them.
+
 `campaign_category` defaults to `automation` when empty or missing. If the account has no category with that name, the SMS campaign spec creates it from the dropdown's Create New box, and the spec then writes the name into `qa.properties`.
 
 `sms_sender_id` is optional. The template picker only lists templates registered under the selected sender ID, so set it to the sender of `sms_template_name`. When it's empty, the form keeps whichever sender it selects by default.
 
-Any property can be overridden with an environment variable: `APP_URL`, `API_URL`, `TIMEOUT_SECONDS`, `CAMPAIGN_CATEGORY`, `SMS_SENDER_ID`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
+Any property can be overridden with an environment variable: `APP_URL`, `API_URL`, `ADMIN_URL`, `TIMEOUT_SECONDS`, `CAMPAIGN_CATEGORY`, `SMS_SENDER_ID`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
 
 ## Running Tests
 
@@ -62,6 +75,7 @@ npm test                    # all specs, headless
 npm run test:headed         # all specs, with the browser window open
 npm run test:sms-campaign   # SMS campaign spec only
 npm run test:password-reset # change the account password (on demand only)
+npm run test:admin          # admin panel specs only
 npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
@@ -71,6 +85,10 @@ Tests run in Chromium, headless by default. Set `HEADED=1` (or use `npm run test
 Login happens once and the access token is reused across runs. `auth-setup` reuses the session saved in `artifacts/.auth/` while its token cookie has at least 15 minutes left and the API accepts the token, and logs in otherwise. The browser drops the cookie an hour after login, even though the API may still accept the token, and a password reset revokes the token. `chromium` then runs every other spec with that saved session. Specs that call the API directly use the `api` fixture, which sends the saved token as a Bearer header, e.g. `await api.get('/api/v1/settings')`.
 
 The `login` project (the login and forgot-password specs) runs alongside, from a clean browser. Those specs log in because that is what they test, and staging keeps other sessions alive when they log out.
+
+The admin panel has three projects of its own, set up the same way. `admin-auth-setup` saves and reuses the admin session in separate files under `artifacts/.auth/`, with the same 15-minute rule; the admin cookie lasts two hours, and the admin API takes the token without a Bearer prefix. `admin` runs the admin specs with that session, and `admin-login` signs in and out from a clean browser.
+
+> **Note:** the admin specs are read-only, because admin changes reach every account on staging. They open, read and search, and never create, edit, delete or approve anything, or run a forgot or change password flow for the admin user. The negative login cases use a made-up username, so repeated runs can't lock the shared admin account; each run signs in for real once, plus once more when the saved admin session has expired.
 
 > **Note:** the sender ID and template lifecycle specs create, edit and delete real records on staging. Each test removes everything it created through the API afterwards, even when it fails, and test records are named `QAT...` (sender IDs) and `qa_auto_...` (templates).
 
@@ -95,9 +113,9 @@ Output goes to `artifacts/` (gitignored):
 config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
-  fixtures/        Playwright fixtures that provide page objects
-  pages/           page objects by UI area (login, dashboard, sms, campaign, reports, users) and shared components
-  specs/           test specs
+  fixtures/        Playwright fixtures that provide page objects (admin-fixtures.ts for the admin panel)
+  pages/           page objects by UI area (login, dashboard, sms, campaign, reports, users, admin) and shared components
+  specs/           test specs (specs/admin/ for the admin panel)
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers
 playwright.config.ts
@@ -110,6 +128,10 @@ Ported so far: login (valid login and logout, field validation, password visibil
 1. WhatsApp campaigns
 
 Locators are still mostly XPath carried over from Selenium. For new and touched code, prefer Playwright role, label, text, and test-id locators where the app exposes them.
+
+## Admin Panel
+
+New coverage, not part of the Java suite: login (signing in with the OTP and out again, empty fields, an unknown username, Enter to submit, the redirect without a session), Organizations (the home page, the listing checked row by row against the API, and search), and the side navigation's groups and entries.
 
 ## License
 

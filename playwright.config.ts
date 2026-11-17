@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { appConfig } from './e2e/utils/config';
-import { storageStatePath } from './e2e/utils/auth-state';
+import { adminSession, panelSession } from './e2e/utils/auth-state';
 
 const browserName = 'chromium';
 // Headless by default, as Playwright itself is. HEADED=1 opens the browser (npm run test:headed).
@@ -58,15 +58,41 @@ export default defineConfig({
     // Reuses the saved access token while the API accepts it; logs in only when it doesn't.
     {
       name: 'auth-setup',
-      testMatch: /auth\/.*\.setup\.ts/,
+      testMatch: /auth\/auth\.setup\.ts/,
     },
     {
       name: browserName,
       dependencies: ['auth-setup'],
       testMatch: /specs\/.*\.spec\.ts/,
-      testIgnore: /specs\/(login|password-reset)\//,
+      testIgnore: /specs\/(login|password-reset|admin)\//,
       use: {
-        storageState: storageStatePath,
+        storageState: panelSession.storageStatePath,
+      },
+    },
+    // The admin panel: its own URL and saved session, reused the same way as the panel's.
+    // admin-login signs in and out in its own browser; staging keeps the saved session alive.
+    {
+      name: 'admin-login',
+      testMatch: /specs\/admin\/login\/.*\.spec\.ts/,
+      use: {
+        baseURL: appConfig.adminUrl || undefined,
+      },
+    },
+    {
+      name: 'admin-auth-setup',
+      testMatch: /auth\/admin\.setup\.ts/,
+      use: {
+        baseURL: appConfig.adminUrl || undefined,
+      },
+    },
+    {
+      name: 'admin',
+      dependencies: ['admin-auth-setup'],
+      testMatch: /specs\/admin\/.*\.spec\.ts/,
+      testIgnore: /specs\/admin\/login\//,
+      use: {
+        baseURL: appConfig.adminUrl || undefined,
+        storageState: adminSession.storageStatePath,
       },
     },
   ],
