@@ -76,6 +76,7 @@ npm run test:headed         # all specs, with the browser window open
 npm run test:sms-campaign   # SMS campaign spec only
 npm run test:password-reset # change the account password (on demand only)
 npm run test:admin          # admin panel specs only
+npm run test:admin-write    # admin Create User specs, headed (creates a user; on demand only)
 npm run test:ui             # Playwright UI mode
 npm run typecheck           # TypeScript check, no browser
 ```
@@ -89,6 +90,8 @@ The `login` project (the login and forgot-password specs) runs alongside, from a
 The admin panel has three projects of its own, set up the same way. `admin-auth-setup` saves and reuses the admin session in separate files under `artifacts/.auth/`, with the same 15-minute rule; the admin cookie lasts two hours, and the admin API takes the token without a Bearer prefix. `admin` runs the admin specs with that session, and `admin-login` signs in and out from a clean browser.
 
 > **Note:** the admin specs are read-only, because admin changes reach every account on staging. They open, read and search, and never create, edit, delete or approve anything, or run a forgot or change password flow for the admin user. The negative login cases use a made-up username, so repeated runs can't lock the shared admin account; each run signs in for real once, plus once more when the saved admin session has expired.
+
+> **Caution:** the one exception is Users > Create User, the only admin page the specs may write to. Its specs live in `specs/admin/write/` and run only in the `admin-write` project, which exists with `ADMIN_WRITE=1` (`npm run test:admin-write`, headed). Each run creates one permanent user named `qa_auto_<timestamp>` with an `example.com` email under the Compiled Test organization, and tries the same username again to check it is refused. Nothing is deleted afterwards, because deleting users is outside what the specs may do.
 
 > **Note:** the sender ID and template lifecycle specs create, edit and delete real records on staging. Each test removes everything it created through the API afterwards, even when it fails, and test records are named `QAT...` (sender IDs) and `qa_auto_...` (templates).
 
@@ -131,7 +134,7 @@ Locators are still mostly XPath carried over from Selenium. For new and touched 
 
 ## Admin Panel
 
-New coverage, not part of the Java suite: login (signing in with the OTP and out again, empty fields, an unknown username, Enter to submit, the redirect without a session), Organizations (the home page, the listing checked row by row against the API, and search), every other User Onboarding page (Contracts, Users, Teammates, Credits, Transaction History, Rule Matrix, Report Scheduler, Daily Threshold, SFTP Configurations and Approval: each opened from the side nav, with its heading, columns, row count and total checked against the API), and the side navigation's groups and entries.
+New coverage, not part of the Java suite: login (signing in with the OTP and out again, empty fields, an unknown username, Enter to submit, the redirect without a session), Organizations (the home page, the listing checked row by row against the API, and search), every other User Onboarding page (Contracts, Users, Teammates, Credits, Transaction History, Rule Matrix, Report Scheduler, Daily Threshold, SFTP Configurations and Approval: each opened from the side nav, with its heading, columns, row count and total checked against the API), the side navigation's groups and entries, and, on demand, Create User (filling every required field, Cancel without saving, a real create checked on the user's edit page, and a refused duplicate username).
 
 ## License
 
