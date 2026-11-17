@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 import { appConfig } from './e2e/utils/config';
-import { storageStatePath } from './e2e/utils/auth-state';
+import { panelSession } from './e2e/utils/auth-state';
 
 const browserName = 'chromium';
 // Headless by default, as Playwright itself is. HEADED=1 opens the browser (npm run test:headed).
@@ -66,7 +66,7 @@ export default defineConfig({
       testMatch: /specs\/.*\.spec\.ts/,
       testIgnore: /specs\/(login|password-reset)\//,
       use: {
-        storageState: storageStatePath,
+        storageState: panelSession.storageStatePath,
       },
     },
   ],

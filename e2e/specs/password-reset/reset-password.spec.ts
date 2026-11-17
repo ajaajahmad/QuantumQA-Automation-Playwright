@@ -1,5 +1,5 @@
 import { test } from '../../fixtures/test-fixtures';
-import { saveAuthState } from '../../utils/auth-state';
+import { panelSession, saveAuthState } from '../../utils/auth-state';
 import { appConfig } from '../../utils/config';
 import { generateSimilarPassword } from '../../utils/password';
 import {
@@ -54,6 +54,6 @@ test.describe('Password reset', () => {
 
     updateUserPassword(account!.username, newPassword);
     clearPendingPassword();
-    await saveAuthState(page);
+    await saveAuthState(page, panelSession);
   });
 });

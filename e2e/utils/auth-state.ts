@@ -13,14 +13,30 @@ export type SessionState = {
   sessionStorage: StorageEntry[];
 };
 
-export const authDir = path.resolve(__dirname, '../../artifacts/.auth');
-export const storageStatePath = path.join(authDir, 'storage-state.json');
-export const sessionStatePath = path.join(authDir, 'session-state.json');
+// One app's saved login: where it is kept, the cookie the app keeps its API token in, and how to
+// ask the API whether that token is still accepted.
+export type AppSession = {
+  storageStatePath: string;
+  sessionStatePath: string;
+  tokenCookie: string;
+  tokenCheckUrl: string;
+  authorization: (token: string) => string;
+};
 
-export async function saveAuthState(page: Page): Promise<void> {
+export const authDir = path.resolve(__dirname, '../../artifacts/.auth');
+
+export const panelSession: AppSession = {
+  storageStatePath: path.join(authDir, 'storage-state.json'),
+  sessionStatePath: path.join(authDir, 'session-state.json'),
+  tokenCookie: 'access-token',
+  tokenCheckUrl: `${appConfig.apiUrl}/api/v1/users/user-currency`,
+  authorization: (token) => `Bearer ${token}`,
+};
+
+export async function saveAuthState(page: Page, session: AppSession): Promise<void> {
   fs.mkdirSync(authDir, { recursive: true });
 
-  await page.context().storageState({ path: storageStatePath });
+  await page.context().storageState({ path: session.storageStatePath });
 
   const sessionState = await page.evaluate<SessionState>(() => {
     const toEntries = (storage: Storage): StorageEntry[] =>
@@ -35,45 +51,44 @@ export async function saveAuthState(page: Page): Promise<void> {
     };
   });
 
-  fs.writeFileSync(sessionStatePath, JSON.stringify(sessionState, null, 2));
+  fs.writeFileSync(session.sessionStatePath, JSON.stringify(sessionState, null, 2));
 }
 
-export function readSessionState(): SessionState | undefined {
-  if (!fs.existsSync(sessionStatePath)) {
+export function readSessionState(session: AppSession): SessionState | undefined {
+  if (!fs.existsSync(session.sessionStatePath)) {
     return undefined;
   }
 
-  return JSON.parse(fs.readFileSync(sessionStatePath, 'utf8')) as SessionState;
+  return JSON.parse(fs.readFileSync(session.sessionStatePath, 'utf8')) as SessionState;
 }
 
-// The browser drops the token cookie an hour after login even while the API still accepts the
-// token, and the app then shows the login page. Log in again when less than this is left, so a
-// run can't cross the expiry halfway.
+// The browser drops the token cookie when it expires even while the API still accepts the token
+// (an hour after login on the panel), and the app then shows the login page. Log in again when
+// less than this is left, so a run can't cross the expiry halfway.
 const minimumCookieLifeMs = 15 * 60 * 1000;
 
 type Cookie = { name: string; value: string; expires: number };
 
-// The app keeps its API token in this cookie and sends it as a Bearer header.
-function readAccessTokenCookie(): Cookie | undefined {
-  if (!fs.existsSync(storageStatePath)) {
+function readAccessTokenCookie(session: AppSession): Cookie | undefined {
+  if (!fs.existsSync(session.storageStatePath)) {
     return undefined;
   }
 
-  const { cookies } = JSON.parse(fs.readFileSync(storageStatePath, 'utf8')) as { cookies: Cookie[] };
+  const { cookies } = JSON.parse(fs.readFileSync(session.storageStatePath, 'utf8')) as { cookies: Cookie[] };
 
-  return cookies.find((cookie) => cookie.name === 'access-token');
+  return cookies.find((cookie) => cookie.name === session.tokenCookie);
 }
 
-export function readAccessToken(): string | undefined {
-  return readAccessTokenCookie()?.value;
+export function readAccessToken(session: AppSession): string | undefined {
+  return readAccessTokenCookie(session)?.value;
 }
 
 // Both must hold: the browser still has the cookie for long enough, and the API accepts the token
 // (a password reset revokes it). expires is -1 for a cookie without an expiry.
-export async function isSavedTokenValid(request: APIRequestContext): Promise<boolean> {
-  const cookie = readAccessTokenCookie();
+export async function isSavedTokenValid(request: APIRequestContext, session: AppSession): Promise<boolean> {
+  const cookie = readAccessTokenCookie(session);
 
-  if (!cookie || !readSessionState()) {
+  if (!cookie || !readSessionState(session)) {
     return false;
   }
 
@@ -81,8 +96,8 @@ export async function isSavedTokenValid(request: APIRequestContext): Promise<boo
     return false;
   }
 
-  const response = await request.get(`${appConfig.apiUrl}/api/v1/users/user-currency`, {
-    headers: { Authorization: `Bearer ${cookie.value}` },
+  const response = await request.get(session.tokenCheckUrl, {
+    headers: { Authorization: session.authorization(cookie.value) },
   });
 
   return response.ok();

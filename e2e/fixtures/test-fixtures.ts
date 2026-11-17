@@ -35,7 +35,7 @@ import {
   truecallerAccountMis,
   whatsAppAccountMis,
 } from '../pages/users/account-mis.page';
-import { readAccessToken, readSessionState } from '../utils/auth-state';
+import { panelSession, readAccessToken, readSessionState } from '../utils/auth-state';
 import { appConfig } from '../utils/config';
 
 type AppFixtures = {
@@ -74,7 +74,7 @@ export const test = base.extend<AppFixtures>({
   useAuthenticatedSession: [true, { option: true }],
   context: async ({ context, useAuthenticatedSession }, use) => {
     if (useAuthenticatedSession) {
-      const sessionState = readSessionState();
+      const sessionState = readSessionState(panelSession);
 
       if (sessionState) {
         // Init scripts run on every navigation. Restore only once per tab so a reload
@@ -99,7 +99,7 @@ export const test = base.extend<AppFixtures>({
   },
   // Calls the API with the token auth setup saved, e.g. api.get('/api/v1/settings').
   api: async ({ playwright }, use) => {
-    const token = readAccessToken();
+    const token = readAccessToken(panelSession);
 
     if (!token) {
       throw new Error('No saved access token. Run the auth-setup project first.');
