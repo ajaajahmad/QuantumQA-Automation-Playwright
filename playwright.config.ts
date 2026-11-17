@@ -70,6 +70,14 @@ export default defineConfig({
       },
     },
     // The admin panel: its own URL and saved session, reused the same way as the panel's.
+    // admin-login signs in and out in its own browser; staging keeps the saved session alive.
+    {
+      name: 'admin-login',
+      testMatch: /specs\/admin\/login\/.*\.spec\.ts/,
+      use: {
+        baseURL: appConfig.adminUrl || undefined,
+      },
+    },
     {
       name: 'admin-auth-setup',
       testMatch: /auth\/admin\.setup\.ts/,
