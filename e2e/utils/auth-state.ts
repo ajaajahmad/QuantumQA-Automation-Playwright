@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import type { APIRequestContext, Page } from '@playwright/test';
+import type { APIRequestContext, BrowserContext, Page } from '@playwright/test';
 import { appConfig } from './config';
 
 export type StorageEntry = {
@@ -60,6 +60,32 @@ export function readSessionState(session: AppSession): SessionState | undefined 
   }
 
   return JSON.parse(fs.readFileSync(session.sessionStatePath, 'utf8')) as SessionState;
+}
+
+// Playwright's storage state leaves out session storage, so an init script puts it back before
+// the app's own scripts run.
+export async function restoreSessionStorage(context: BrowserContext, session: AppSession): Promise<void> {
+  const sessionState = readSessionState(session);
+
+  if (!sessionState) {
+    return;
+  }
+
+  // Init scripts run on every navigation. Restore only once per tab so a reload doesn't
+  // overwrite tokens the app has refreshed, or undo a logout.
+  await context.addInitScript((state) => {
+    const restoredKey = '__pw_session_restored';
+
+    if (window.location.origin !== state.origin || window.sessionStorage.getItem(restoredKey)) {
+      return;
+    }
+
+    window.sessionStorage.setItem(restoredKey, '1');
+
+    for (const entry of state.sessionStorage) {
+      window.sessionStorage.setItem(entry.key, entry.value);
+    }
+  }, sessionState);
 }
 
 // The browser drops the token cookie when it expires even while the API still accepts the token

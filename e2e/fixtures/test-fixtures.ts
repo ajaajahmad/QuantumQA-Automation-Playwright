@@ -35,7 +35,7 @@ import {
   truecallerAccountMis,
   whatsAppAccountMis,
 } from '../pages/users/account-mis.page';
-import { panelSession, readAccessToken, readSessionState } from '../utils/auth-state';
+import { panelSession, readAccessToken, restoreSessionStorage } from '../utils/auth-state';
 import { appConfig } from '../utils/config';
 
 type AppFixtures = {
@@ -74,25 +74,7 @@ export const test = base.extend<AppFixtures>({
   useAuthenticatedSession: [true, { option: true }],
   context: async ({ context, useAuthenticatedSession }, use) => {
     if (useAuthenticatedSession) {
-      const sessionState = readSessionState(panelSession);
-
-      if (sessionState) {
-        // Init scripts run on every navigation. Restore only once per tab so a reload
-        // doesn't overwrite tokens the app has refreshed, or undo a logout.
-        await context.addInitScript((state) => {
-          const restoredKey = '__pw_session_restored';
-
-          if (window.location.origin !== state.origin || window.sessionStorage.getItem(restoredKey)) {
-            return;
-          }
-
-          window.sessionStorage.setItem(restoredKey, '1');
-
-          for (const entry of state.sessionStorage) {
-            window.sessionStorage.setItem(entry.key, entry.value);
-          }
-        }, sessionState);
-      }
+      await restoreSessionStorage(context, panelSession);
     }
 
     await use(context);
