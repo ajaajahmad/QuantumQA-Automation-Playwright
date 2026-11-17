@@ -33,6 +33,16 @@ export const panelSession: AppSession = {
   authorization: (token) => `Bearer ${token}`,
 };
 
+// The admin panel shares the panel's host but keeps its own cookie, and sends the token as is,
+// without a Bearer scheme. GET settings is the first call it makes after login.
+export const adminSession: AppSession = {
+  storageStatePath: path.join(authDir, 'admin-storage-state.json'),
+  sessionStatePath: path.join(authDir, 'admin-session-state.json'),
+  tokenCookie: 'access-token-admin',
+  tokenCheckUrl: `${appConfig.adminApiUrl}/settings`,
+  authorization: (token) => token,
+};
+
 export async function saveAuthState(page: Page, session: AppSession): Promise<void> {
   fs.mkdirSync(authDir, { recursive: true });
 
