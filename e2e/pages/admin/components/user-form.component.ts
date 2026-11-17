@@ -85,10 +85,20 @@ export class UserForm {
   }
 }
 
-// What the server said to a save; the page itself shows nothing for some failures.
+// What the server said to a save; the page itself shows nothing for some failures. A refused
+// save says only "Http Exception" and names the reasons per field under data.errors.
 export async function readSaveResult(response: Response): Promise<SaveResult> {
-  const body = (await response.json().catch(() => ({}))) as { success?: boolean; message?: string };
-  return { status: response.status(), success: body.success === true, message: body.message ?? '' };
+  const body = (await response.json().catch(() => ({}))) as {
+    success?: boolean;
+    message?: string;
+    data?: { errors?: Record<string, string> };
+  };
+  const reasons = Object.values(body.data?.errors ?? {});
+  return {
+    status: response.status(),
+    success: body.success === true,
+    message: [body.message ?? '', ...reasons].filter(Boolean).join(': '),
+  };
 }
 
 function escapeRegExp(value: string): string {
