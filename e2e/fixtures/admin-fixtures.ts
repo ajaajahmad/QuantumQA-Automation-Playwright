@@ -5,6 +5,8 @@ import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
 import { AdminListPage } from '../pages/admin/onboarding/admin-list.page';
 import { OrganizationsPage } from '../pages/admin/organizations/organizations.page';
 import { CreateUserPage } from '../pages/admin/users/create-user.page';
+import { EditUserPage } from '../pages/admin/users/edit-user.page';
+import { UsersPage } from '../pages/admin/users/users.page';
 import { adminSession, restoreSessionStorage } from '../utils/auth-state';
 import { requireAdminUrl } from '../utils/config';
 
@@ -18,6 +20,8 @@ type AdminFixtures = {
   organizationsPage: OrganizationsPage;
   adminListPage: AdminListPage;
   createUserPage: CreateUserPage;
+  usersPage: UsersPage;
+  editUserPage: EditUserPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -48,6 +52,12 @@ export const test = base.extend<AdminFixtures>({
   },
   createUserPage: async ({ page }, use) => {
     await use(new CreateUserPage(page));
+  },
+  usersPage: async ({ page }, use) => {
+    await use(new UsersPage(page));
+  },
+  editUserPage: async ({ page }, use) => {
+    await use(new EditUserPage(page));
   },
 });
 
