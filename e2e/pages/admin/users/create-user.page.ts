@@ -20,8 +20,8 @@ export type NewAdminUser = {
   smpp?: SmppSettings;
 };
 
-// Users > Create User. Writes are allowed on this page only (the user's grant, 2026-11-17); the
-// specs that use it run in the opt-in admin-write project.
+// Users > Create User, one of the two admin pages the specs write to (the user's grants,
+// 2026-11-17); the specs that use it run in the opt-in admin-write project.
 export class CreateUserPage {
   readonly sideNav: AdminSideNav;
   readonly form: UserForm;
