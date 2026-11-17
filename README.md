@@ -131,7 +131,7 @@ Locators are still mostly XPath carried over from Selenium. For new and touched 
 
 ## Admin Panel
 
-New coverage, not part of the Java suite: login (signing in with the OTP and out again, empty fields, an unknown username, Enter to submit, the redirect without a session), Organizations (the home page, the listing checked row by row against the API, and search), and the side navigation's groups and entries.
+New coverage, not part of the Java suite: login (signing in with the OTP and out again, empty fields, an unknown username, Enter to submit, the redirect without a session), Organizations (the home page, the listing checked row by row against the API, and search), every other User Onboarding page (Contracts, Users, Teammates, Credits, Transaction History, Rule Matrix, Report Scheduler, Daily Threshold, SFTP Configurations and Approval: each opened from the side nav, with its heading, columns, row count and total checked against the API), and the side navigation's groups and entries.
 
 ## License
 
