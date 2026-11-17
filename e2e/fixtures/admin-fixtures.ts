@@ -4,6 +4,7 @@ import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
 import { AdminListPage } from '../pages/admin/onboarding/admin-list.page';
 import { OrganizationsPage } from '../pages/admin/organizations/organizations.page';
+import { CreateUserPage } from '../pages/admin/users/create-user.page';
 import { adminSession, restoreSessionStorage } from '../utils/auth-state';
 import { requireAdminUrl } from '../utils/config';
 
@@ -16,6 +17,7 @@ type AdminFixtures = {
   adminSideNav: AdminSideNav;
   organizationsPage: OrganizationsPage;
   adminListPage: AdminListPage;
+  createUserPage: CreateUserPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -43,6 +45,9 @@ export const test = base.extend<AdminFixtures>({
   },
   adminListPage: async ({ page }, use) => {
     await use(new AdminListPage(page));
+  },
+  createUserPage: async ({ page }, use) => {
+    await use(new CreateUserPage(page));
   },
 });
 
