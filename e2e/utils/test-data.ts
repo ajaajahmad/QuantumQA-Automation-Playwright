@@ -27,6 +27,8 @@ type PendingPassword = {
 
 const rootDir = path.resolve(__dirname, '../..');
 const dataPath = path.join(rootDir, 'e2e/test-data/userdata.json');
+// The admin panel account. Kept out of userdata.json because the login spec logs in with every row there.
+const adminDataPath = path.join(rootDir, 'e2e/test-data/admin-userdata.json');
 export const pendingPasswordPath = path.join(rootDir, 'e2e/test-data/pending-password.json');
 
 function readUserDataRows(): UserDataRow[] {
@@ -47,6 +49,21 @@ export function readUserCredentials(): UserCredentials[] {
   }
 
   return validRows;
+}
+
+// The admin panel always asks for an OTP, so the file must hold one.
+export function readAdminCredentials(): Required<UserCredentials> {
+  if (!fs.existsSync(adminDataPath)) {
+    throw new Error(`Missing ${adminDataPath}. See the Setup section of the README.`);
+  }
+
+  const row = JSON.parse(fs.readFileSync(adminDataPath, 'utf8')) as UserDataRow;
+
+  if (!row.username?.trim() || !row.password?.trim() || !row.one_time_password?.trim()) {
+    throw new Error(`${adminDataPath} needs username, password and one_time_password.`);
+  }
+
+  return { username: row.username, password: row.password, otp: row.one_time_password };
 }
 
 // Optional: without a row that has the forgot-password fields, that spec is skipped, not failed.
