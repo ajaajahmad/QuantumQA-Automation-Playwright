@@ -89,11 +89,26 @@ export default defineConfig({
       name: 'admin',
       dependencies: ['admin-auth-setup'],
       testMatch: /specs\/admin\/.*\.spec\.ts/,
-      testIgnore: /specs\/admin\/login\//,
+      testIgnore: /specs\/admin\/(login|write)\//,
       use: {
         baseURL: appConfig.adminUrl || undefined,
         storageState: adminSession.storageStatePath,
       },
     },
+    // Admin specs that create records on shared staging exist only when asked for:
+    // npm run test:admin-write.
+    ...(process.env.ADMIN_WRITE === '1'
+      ? [
+          {
+            name: 'admin-write',
+            dependencies: ['admin-auth-setup'],
+            testMatch: /specs\/admin\/write\/.*\.spec\.ts/,
+            use: {
+              baseURL: appConfig.adminUrl || undefined,
+              storageState: adminSession.storageStatePath,
+            },
+          },
+        ]
+      : []),
   ],
 });
