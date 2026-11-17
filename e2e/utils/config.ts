@@ -57,6 +57,16 @@ function getRequiredConfigValue(propertyKey: string, envKey: string): string {
   return value.replace(/\/+$/, '');
 }
 
+// Admin specs call this before using adminUrl, so a missing key fails with a pointer to the README
+// instead of a navigation to an empty URL.
+export function requireAdminUrl(): string {
+  if (!appConfig.adminUrl) {
+    throw new Error(`Missing admin_url in ${configPath}. See the Setup section of the README.`);
+  }
+
+  return appConfig.adminUrl;
+}
+
 // Sets one key in qa.properties, replacing its line or appending it, and keeps every other line as is.
 export function saveConfigValue(propertyKey: string, value: string): void {
   if (properties[propertyKey] === value) {
