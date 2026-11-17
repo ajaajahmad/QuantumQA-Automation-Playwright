@@ -1,4 +1,5 @@
 import { test as base } from '@playwright/test';
+import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
 import { adminSession, restoreSessionStorage } from '../utils/auth-state';
 import { requireAdminUrl } from '../utils/config';
@@ -8,6 +9,7 @@ import { requireAdminUrl } from '../utils/config';
 type AdminFixtures = {
   useAuthenticatedSession: boolean;
   adminLoginPage: AdminLoginPage;
+  adminHeader: AdminHeader;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -23,6 +25,9 @@ export const test = base.extend<AdminFixtures>({
   },
   adminLoginPage: async ({ page }, use) => {
     await use(new AdminLoginPage(page));
+  },
+  adminHeader: async ({ page }, use) => {
+    await use(new AdminHeader(page));
   },
 });
 
