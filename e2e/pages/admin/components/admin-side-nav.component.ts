@@ -24,4 +24,9 @@ export class AdminSideNav {
   async expectEntries(labels: string[]): Promise<void> {
     await expect(this.entries).toHaveText(labels);
   }
+
+  // Opens an entry of the group that is open.
+  async openEntry(label: string): Promise<void> {
+    await this.entries.filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) }).getByRole('link').click();
+  }
 }
