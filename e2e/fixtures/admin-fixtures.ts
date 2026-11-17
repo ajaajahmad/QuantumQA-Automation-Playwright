@@ -2,6 +2,7 @@ import { test as base } from '@playwright/test';
 import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
+import { OrganizationsPage } from '../pages/admin/organizations/organizations.page';
 import { adminSession, restoreSessionStorage } from '../utils/auth-state';
 import { requireAdminUrl } from '../utils/config';
 
@@ -12,6 +13,7 @@ type AdminFixtures = {
   adminLoginPage: AdminLoginPage;
   adminHeader: AdminHeader;
   adminSideNav: AdminSideNav;
+  organizationsPage: OrganizationsPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -33,6 +35,9 @@ export const test = base.extend<AdminFixtures>({
   },
   adminSideNav: async ({ page }, use) => {
     await use(new AdminSideNav(page));
+  },
+  organizationsPage: async ({ page }, use) => {
+    await use(new OrganizationsPage(page));
   },
 });
 
