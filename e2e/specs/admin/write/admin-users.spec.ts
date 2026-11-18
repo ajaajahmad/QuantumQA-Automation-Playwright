@@ -1,9 +1,11 @@
 import { expect, test } from '../../../fixtures/admin-fixtures';
 import type { AdminUserDetails } from '../../../pages/admin/admin-group/admin-user-form.page';
+import type { SaveResult } from '../../../pages/admin/components/user-form.component';
 import {
   createRole,
   findRoles,
   getAdminList,
+  getAdminUserProfile,
   getFeatures,
   getPermissions,
   getUserFeatureValues,
@@ -41,9 +43,19 @@ const user: AdminUserDetails = {
   status: 'Inactive',
 };
 
-const edited = { fullName: 'QA Automation Admin Edited', state: 'Haryana', city: 'Gurugram', zipcode: '122001', address: 'QA automation, edited' };
+// The update picks the country again, since the create saves none.
+const edited = {
+  fullName: 'QA Automation Admin Edited',
+  countries: ['India'],
+  state: 'Haryana',
+  city: 'Gurugram',
+  zipcode: '122001',
+  address: 'QA automation, edited',
+};
 
 type Api = Parameters<typeof findRoles>[0];
+
+let createAnswer: SaveResult | undefined;
 type AdminUserRow = { id: number; username: string; status: string; role: string };
 
 async function ensureRole(api: Api): Promise<void> {
@@ -63,25 +75,46 @@ async function theUser(api: Api): Promise<AdminUserRow> {
 test.describe('Admin Users, writing', () => {
   test.skip(!appConfig.officialEmailDomain, 'Set official_email_domain in config/qa.properties; admin users need an official email.');
 
+  // Known defect (pinned below): the server saves the user but answers "Something went wrong.", so
+  // this test checks what was saved, and keeps the answer for the pinned test.
   test('creates an inactive admin user the list and edit page show', async ({ adminApi, adminUsersPage, adminUserFormPage }) => {
     await ensureRole(adminApi);
     await adminUsersPage.open();
     await adminUsersPage.openCreate();
     await adminUserFormPage.enter(user);
 
-    const created = await adminUserFormPage.save();
+    createAnswer = await adminUserFormPage.save();
 
-    expect(created, `server answered: ${created.message}`).toMatchObject({ success: true });
-    console.log('DIALOG create:', await adminUserFormPage.messageDialog.closeIfShown());
+    // The page shows the false "Something went wrong." error; the answer is pinned below.
+    await adminUserFormPage.messageDialog.closeIfShown();
     await adminUsersPage.open();
     const results = await adminUsersPage.search<AdminUserRow>(user.username);
     expect(results.data.items).toEqual([expect.objectContaining({ username: user.username, role: roleName })]);
     expect(results.data.items[0].status.toLowerCase()).toBe('inactive');
     await adminUsersPage.table.expectRowsOf(results);
 
+    // The edit page shows what was stored; the Countries the form sent are pinned below.
+    const { id } = results.data.items[0];
+    const saved = await getAdminUserProfile(adminApi, id);
     await adminUsersPage.table.clickRowAction(user.username, 'Edit');
-    await adminUserFormPage.expectEditForm(results.data.items[0].id);
-    await adminUserFormPage.expectValues(user);
+    await adminUserFormPage.expectEditForm(id);
+    await adminUserFormPage.expectValues({ ...user, countries: saved.countries });
+  });
+
+  // Known defects, pinned: the create above saves the user without the Countries it sent (they come
+  // back empty) and answers success: false, "Something went wrong." (status_code 500). These pass
+  // while the defects exist and fail once they're fixed: then remove test.fail. Neither sends anything.
+  test('answers success to a create that saved the user', async () => {
+    test.fail(true, 'Staging answers "Something went wrong." to an admin user create that succeeded.');
+
+    expect(createAnswer, `server answered: ${createAnswer?.message}`).toMatchObject({ success: true });
+  });
+
+  test('keeps the countries picked on create', async ({ adminApi }) => {
+    const { id } = await theUser(adminApi);
+    test.fail(true, 'Staging saves a new admin user without its Countries.');
+
+    expect((await getAdminUserProfile(adminApi, id)).countries).toEqual(user.countries);
   });
 
   test('refuses the same username again', async ({ adminApi, adminUsersPage, adminUserFormPage }) => {
@@ -91,8 +124,9 @@ test.describe('Admin Users, writing', () => {
 
     const duplicate = await adminUserFormPage.save();
 
-    expect(duplicate.success, `server answered: ${duplicate.message}`).toBe(false);
-    console.log('DIALOG duplicate:', await adminUserFormPage.messageDialog.closeIfShown(), '| server:', duplicate.message);
+    expect(duplicate).toMatchObject({ success: false, message: 'Username already exist, Email id already exist' });
+    await adminUserFormPage.messageDialog.expectShown('Error', 'Username already exist, Email id already exist');
+    await adminUserFormPage.messageDialog.close();
     const matches = (await getAdminList<AdminUserRow>(adminApi, 'auth/users', { queryterm: user.username })).data.items;
     expect(matches.filter((row) => row.username === user.username)).toHaveLength(1);
   });
@@ -108,7 +142,8 @@ test.describe('Admin Users, writing', () => {
     const updated = await adminUserFormPage.update();
 
     expect(updated, `server answered: ${updated.message}`).toMatchObject({ success: true });
-    console.log('DIALOG update:', await adminUserFormPage.messageDialog.closeIfShown());
+    await adminUserFormPage.messageDialog.expectShown('Success', 'User Updated Successfully');
+    await adminUserFormPage.messageDialog.close();
     await adminUsersPage.open();
     await adminUsersPage.search(user.username);
     await adminUsersPage.table.clickRowAction(user.username, 'Edit');
@@ -122,7 +157,7 @@ test.describe('Admin Users, writing', () => {
       .find((permission) => permission.permission === 'View Roles')!.id;
     await adminUsersPage.open();
     await adminUsersPage.search(user.username);
-    await adminUsersPage.table.clickRowAction(user.username, 'Manage Role Permissions');
+    await permissionsPage.openedBy(() => adminUsersPage.table.clickRowAction(user.username, 'Manage Role Permissions'));
     await permissionsPage.expectDisplayed('user');
     await permissionsPage.expectTicked(await getUserPermissionIds(adminApi, id));
 
@@ -130,11 +165,12 @@ test.describe('Admin Users, writing', () => {
     const saved = await permissionsPage.submit();
 
     expect(saved, `server answered: ${saved.message}`).toMatchObject({ success: true });
-    console.log('DIALOG permissions:', await permissionsPage.messageDialog.closeIfShown());
+    await permissionsPage.messageDialog.expectShown('Success', 'Permissions Assigned Successfully');
+    await permissionsPage.messageDialog.close();
     expect(await getUserPermissionIds(adminApi, id)).toContain(viewRoles);
     await adminUsersPage.open();
     await adminUsersPage.search(user.username);
-    await adminUsersPage.table.clickRowAction(user.username, 'Manage Role Permissions');
+    await permissionsPage.openedBy(() => adminUsersPage.table.clickRowAction(user.username, 'Manage Role Permissions'));
     await permissionsPage.expectTicked(await getUserPermissionIds(adminApi, id));
   });
 
@@ -145,15 +181,17 @@ test.describe('Admin Users, writing', () => {
     for (const on of [true, false]) {
       await adminUsersPage.open();
       await adminUsersPage.search(user.username);
-      await adminUsersPage.table.clickRowAction(user.username, 'Feature Configurations');
+      await featureConfigurationPage.openedBy(() => adminUsersPage.table.clickRowAction(user.username, 'Feature Configurations'));
       // The line is labelled Username but shows the full name.
       await featureConfigurationPage.expectDisplayed(`Username : ${edited.fullName}`);
+      await featureConfigurationPage.expectTicked(feature.name, !on);
       await featureConfigurationPage.setTicked(feature.name, on);
 
       const saved = await featureConfigurationPage.submit();
 
       expect(saved, `server answered: ${saved.message}`).toMatchObject({ success: true });
-      console.log('DIALOG features:', await featureConfigurationPage.messageDialog.closeIfShown());
+      await featureConfigurationPage.messageDialog.expectShown('Success', 'Features Assigned Successfully');
+      await featureConfigurationPage.messageDialog.close();
       expect((await getUserFeatureValues(adminApi, id))[feature.id]).toBe(on ? 1 : 0);
     }
   });
