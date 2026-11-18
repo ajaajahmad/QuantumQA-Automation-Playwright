@@ -114,6 +114,11 @@ export class UserForm {
     await expect(this.page.locator(`#${id}`)).toBeEditable({ editable });
   }
 
+  // What an ng-select shows as picked: one value, or every value of a multi-select.
+  async expectPicked(label: string, values: string[]): Promise<void> {
+    await expect(this.field(label).locator('.ng-value-label')).toHaveText(values);
+  }
+
   // A read-only input that opens a calendar with month and year selects; a day click applies it.
   async pickExpiryDate(year: number): Promise<void> {
     await this.field('Expires On').locator('input[name="dp"]').click();
