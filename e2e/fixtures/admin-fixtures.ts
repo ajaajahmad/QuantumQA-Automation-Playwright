@@ -6,6 +6,7 @@ import {
   salesUsersList,
 } from '../pages/admin/admin-group/admin-group-list.page';
 import { AdminUserFormPage } from '../pages/admin/admin-group/admin-user-form.page';
+import { RoleFormPage } from '../pages/admin/admin-group/role-form.page';
 import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
@@ -35,6 +36,7 @@ type AdminFixtures = {
   rolePermissionsPage: AdminGroupListPage;
   salesUsersPage: AdminGroupListPage;
   adminUserFormPage: AdminUserFormPage;
+  roleFormPage: RoleFormPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -89,6 +91,9 @@ export const test = base.extend<AdminFixtures>({
   },
   adminUserFormPage: async ({ page }, use) => {
     await use(new AdminUserFormPage(page));
+  },
+  roleFormPage: async ({ page }, use) => {
+    await use(new RoleFormPage(page));
   },
 });
 
