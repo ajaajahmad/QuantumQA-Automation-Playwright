@@ -78,9 +78,9 @@ export class AdminGroupListPage {
   }
 
   // A fresh load of an Admin group route lands on Organizations, so the page is reached through
-  // the side nav. Opening the group lands on Admin Users and loads its list; a click on its entry
-  // then may not load it again, so only the other lists are opened from their entries. Returns
-  // the list the page loaded.
+  // the side nav. Opening the group usually lands on Admin Users and loads its list, and a click on
+  // the entry then doesn't load it again; when the group click doesn't navigate, the entry does.
+  // The other lists are opened from their entries. Returns the list the page loaded.
   async open<T>(): Promise<LoadedList<T>> {
     await this.page.goto(new URL('#/organizations/listing', appConfig.adminUrl).toString(), {
       waitUntil: 'domcontentloaded',
@@ -89,6 +89,13 @@ export class AdminGroupListPage {
       await this.sideNav.openGroup('Admin');
 
       if (!this.list.firstInGroup) {
+        await this.sideNav.openEntry(this.list.entry);
+        return;
+      }
+
+      try {
+        await this.page.waitForURL(new RegExp(`${escapeRegExp(this.list.path)}$`), { timeout: 3000 });
+      } catch {
         await this.sideNav.openEntry(this.list.entry);
       }
     });
