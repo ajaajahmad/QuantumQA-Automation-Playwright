@@ -119,6 +119,18 @@ test.describe('Admin Users filters', () => {
     expect(options).toEqual((await getRoleOptions(adminApi)).map((role) => role.label));
   });
 
+  test('Role search narrows the options to the matching roles', async ({ adminApi, adminUsersPage }) => {
+    await adminUsersPage.open();
+    const term = (await getRoleOptions(adminApi))[0].label.slice(0, 4);
+
+    const shown = await adminUsersPage.filters.searchOptions('Role', term);
+
+    expect(shown.length).toBeGreaterThan(0);
+    for (const option of shown) {
+      expect(option.toLowerCase()).toContain(term.toLowerCase());
+    }
+  });
+
   test('Role narrows the list to the users holding it', async ({ adminApi, adminUsersPage }) => {
     const [user] = (await adminUsersPage.open<AdminUserRow>()).data.items;
     const role = (await getRoleOptions(adminApi)).find((option) => option.label === user.role);
