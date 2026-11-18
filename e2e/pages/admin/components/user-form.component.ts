@@ -135,6 +135,12 @@ export class UserForm {
     await expect(this.checkbox(label)).toBeChecked({ checked: ticked });
   }
 
+  // The number beside the country code, and the code the picker shows (+91).
+  async expectMobile(countryCode: string, mobile: string): Promise<void> {
+    await expect(this.field('Mobile').locator('ng-select .ng-value-label')).toHaveText(countryCode);
+    await expect(this.field('Mobile').locator('.country_code input')).toHaveValue(mobile);
+  }
+
   // The form's one date field (Expires On, labelled with "(optional)"): a read-only input that opens
   // a calendar with month and year selects, where past days are disabled.
   async pickDate(date: Date): Promise<void> {
