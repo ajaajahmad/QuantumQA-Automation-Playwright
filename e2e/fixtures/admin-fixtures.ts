@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test';
+import { type APIRequestContext, test as base } from '@playwright/test';
 import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
@@ -7,6 +7,7 @@ import { OrganizationsPage } from '../pages/admin/organizations/organizations.pa
 import { CreateUserPage } from '../pages/admin/users/create-user.page';
 import { EditUserPage } from '../pages/admin/users/edit-user.page';
 import { UsersPage } from '../pages/admin/users/users.page';
+import { createAdminApi } from '../utils/admin-api';
 import { adminSession, restoreSessionStorage } from '../utils/auth-state';
 import { requireAdminUrl } from '../utils/config';
 
@@ -22,6 +23,7 @@ type AdminFixtures = {
   createUserPage: CreateUserPage;
   usersPage: UsersPage;
   editUserPage: EditUserPage;
+  adminApi: APIRequestContext;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -58,6 +60,12 @@ export const test = base.extend<AdminFixtures>({
   },
   editUserPage: async ({ page }, use) => {
     await use(new EditUserPage(page));
+  },
+  // The admin API with the saved admin session's token, which it takes without a Bearer prefix.
+  adminApi: async ({ playwright }, use) => {
+    const api = await createAdminApi(playwright.request);
+    await use(api);
+    await api.dispose();
   },
 });
 
