@@ -63,7 +63,10 @@ export class AdminUserFormPage {
     if (details.password !== undefined) await this.form.fillText('password', details.password);
     if (details.mobile !== undefined) await this.form.enterMobile(details.mobile);
 
-    for (const country of details.countries ?? []) {
+    // Countries is a multi-select where picking a picked country drops it, so only new ones are picked.
+    const pickedCountries = details.countries ? await this.form.picked('Countries') : [];
+
+    for (const country of (details.countries ?? []).filter((wanted) => !pickedCountries.includes(wanted))) {
       await this.form.pick('Countries', country);
     }
 
