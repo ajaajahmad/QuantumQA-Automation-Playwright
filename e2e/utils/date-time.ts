@@ -28,6 +28,12 @@ export function usDate(date: Date): string {
   return `${month}/${day}/${year}`;
 }
 
+// The same day of the month, the given number of months ahead (or back, for a negative count).
+export function monthsAhead(months: number, day = 15): Date {
+  const date = new Date();
+  return new Date(date.getFullYear(), date.getMonth() + months, day);
+}
+
 export function daysAgo(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() - days);
