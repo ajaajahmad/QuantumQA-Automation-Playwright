@@ -110,6 +110,10 @@ export class UserForm {
     await mobileField.locator('.country_code input').fill(mobile);
   }
 
+  async expectEditable(id: string, editable: boolean): Promise<void> {
+    await expect(this.page.locator(`#${id}`)).toBeEditable({ editable });
+  }
+
   // A read-only input that opens a calendar with month and year selects; a day click applies it.
   async pickExpiryDate(year: number): Promise<void> {
     await this.field('Expires On').locator('input[name="dp"]').click();
