@@ -52,10 +52,13 @@ export class SalesUserFormPage {
     await expect(this.saveButton).toBeVisible();
   }
 
+  // The form fills in once the sales user arrives, which would overwrite anything typed before; an
+  // email, always set on a saved sales user, shows it has arrived.
   async expectEditForm(id: number): Promise<void> {
     await expect(this.page).toHaveURL(new RegExp(`#/sales-user/listing/edit/${id}$`));
     await expect(this.heading).toBeVisible();
     await expect(this.updateButton).toBeVisible();
+    await expect(this.page.locator('#email')).not.toHaveValue('');
   }
 
   // Fills the given fields only, so a test can leave some as the form set them.
