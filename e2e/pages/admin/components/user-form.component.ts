@@ -13,6 +13,17 @@ export type SmppSettings = {
 
 export type SaveResult = { status: number; success: boolean; message: string };
 
+// The SMPP inputs, by the field names GET users/form/input gives them. The schema marks all six
+// disabled on create and on edit; Enable SMPP is what should unlock them.
+const smppFieldIds = [
+  'smpp_username',
+  'smpp_shortcode',
+  'smpp_allowed_ip',
+  'smpp_max_transmitter_session',
+  'smpp_max_receiver_session',
+  'smpp_max_transreceiver_session',
+];
+
 // The form Create User and a user's edit page share. The app builds it from GET users/form/input
 // in collapsible sections, and a closed section's fields are not in the page.
 export class UserForm {
@@ -87,9 +98,7 @@ export class UserForm {
     await calendar.locator('td.available:not(.off)').filter({ hasText: /^15$/ }).first().click();
   }
 
-  // Ticks Enable SMPP unless it already is, then fills every SMPP field. The fields take input
-  // before the box is ticked, and their maxlength cuts the username at 15 and the shortcode at 20.
-  async enterSmpp(smpp: SmppSettings): Promise<void> {
+  async tickEnableSmpp(): Promise<void> {
     await this.openSection('SMPP Configuration');
     const enabled = this.smppEnable.locator('input');
 
@@ -98,6 +107,36 @@ export class UserForm {
     }
 
     await expect(enabled).toBeChecked();
+  }
+
+  async expectSmppEnabled(enabled: boolean): Promise<void> {
+    await this.openSection('SMPP Configuration');
+    await expect(this.smppEnable.locator('input')).toBeChecked({ checked: enabled });
+  }
+
+  // Checks all six fields in one assertion, so a failure names every field in the wrong state.
+  async expectSmppFieldsEditable(editable: boolean): Promise<void> {
+    await this.openSection('SMPP Configuration');
+    await expect(this.page.locator(`#${smppFieldIds[0]}`)).toBeVisible();
+
+    await expect
+      .poll(
+        async () => {
+          const wrong: string[] = [];
+          for (const id of smppFieldIds) {
+            if ((await this.page.locator(`#${id}`).isEditable()) !== editable) wrong.push(id);
+          }
+          return wrong;
+        },
+        { message: editable ? 'SMPP fields that refuse input' : 'SMPP fields that accept input' },
+      )
+      .toEqual([]);
+  }
+
+  // Ticks Enable SMPP unless it already is, then fills every SMPP field. The fields take input
+  // before the box is ticked, and their maxlength cuts the username at 15 and the shortcode at 20.
+  async enterSmpp(smpp: SmppSettings): Promise<void> {
+    await this.tickEnableSmpp();
     await this.fillText('smpp_username', smpp.username);
     await this.fillText('smpp_shortcode', smpp.shortcode);
     await this.fillText('smpp_allowed_ip', smpp.allowedIps);
