@@ -34,10 +34,11 @@ export class AdminListFilters {
     return (await this.optionItems(filter).locator(optionText).allTextContents()).map((text) => text.trim());
   }
 
-  // Types into the panel's own search box and returns the options still shown.
+  // Types into the panel's own search box, key by key as a person would, and returns the options
+  // still shown.
   async searchOptions(filter: string, text: string): Promise<string[]> {
     await this.open(filter);
-    await this.panel(filter).getByRole('textbox').first().fill(text);
+    await this.panel(filter).getByRole('textbox').first().pressSequentially(text);
     return (await this.optionItems(filter).filter({ visible: true }).locator(optionText).allTextContents()).map((option) =>
       option.trim(),
     );
