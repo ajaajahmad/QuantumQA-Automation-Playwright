@@ -126,6 +126,14 @@ export class UserForm {
     await expect(choice.locator('input')).toBeChecked();
   }
 
+  // The field shows dates as dd/mm/yyyy, sometimes with a trailing space.
+  async expectDate(date: Date): Promise<void> {
+    const shown = [date.getDate(), date.getMonth() + 1].map((part) => String(part).padStart(2, '0'));
+    await expect(this.page.locator('form input[name="dp"]')).toHaveValue(
+      new RegExp(`^\\s*${shown.join('/')}/${date.getFullYear()}\\s*$`),
+    );
+  }
+
   // A read-only input that opens a calendar with month and year selects; a day click applies it.
   async pickExpiryDate(year: number): Promise<void> {
     await this.field('Expires On').locator('input[name="dp"]').click();
