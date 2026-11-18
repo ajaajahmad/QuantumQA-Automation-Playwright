@@ -46,10 +46,13 @@ export class AdminUserFormPage {
     await expect(this.saveButton).toBeVisible();
   }
 
+  // The form fills in once the user's profile arrives, which would overwrite anything typed before;
+  // a username, always set on a saved user, shows it has arrived.
   async expectEditForm(id: number): Promise<void> {
     await expect(this.page).toHaveURL(new RegExp(`#/admin/admin-users/edit/${id}$`));
     await expect(this.heading).toBeVisible();
     await expect(this.updateButton).toBeVisible();
+    await expect(this.page.locator('#username')).not.toHaveValue('');
   }
 
   // Fills the given fields only, so a test can leave some as the form set them.
