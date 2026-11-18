@@ -126,6 +126,21 @@ export class UserForm {
     await expect(choice.locator('input')).toBeChecked();
   }
 
+  // The form's one date field (Expires On, labelled with "(optional)"): a read-only input that opens
+  // a calendar with month and year selects, where past days are disabled.
+  async pickDate(date: Date): Promise<void> {
+    await this.page.locator('form input[name="dp"]').click();
+    const calendar = this.page.locator('.md-drppicker.shown');
+    await calendar.locator('select.yearselect').selectOption(String(date.getFullYear()));
+    await calendar.locator('select.monthselect').selectOption(String(date.getMonth()));
+    await calendar
+      .locator('td.available:not(.off)')
+      .filter({ hasText: new RegExp(`^\\s*${date.getDate()}\\s*$`) })
+      .first()
+      .click();
+    await this.expectDate(date);
+  }
+
   // The field shows dates as dd/mm/yyyy, sometimes with a trailing space.
   async expectDate(date: Date): Promise<void> {
     const shown = [date.getDate(), date.getMonth() + 1].map((part) => String(part).padStart(2, '0'));
