@@ -119,6 +119,13 @@ export class UserForm {
     await expect(this.field(label).locator('.ng-value-label')).toHaveText(values);
   }
 
+  async expectChosen(group: string, option: string): Promise<void> {
+    const choice = this.field(group)
+      .locator('.form-check')
+      .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(option)}\\s*$`) });
+    await expect(choice.locator('input')).toBeChecked();
+  }
+
   // A read-only input that opens a calendar with month and year selects; a day click applies it.
   async pickExpiryDate(year: number): Promise<void> {
     await this.field('Expires On').locator('input[name="dp"]').click();
