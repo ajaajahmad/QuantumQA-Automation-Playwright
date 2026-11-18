@@ -62,6 +62,11 @@ export class PermissionsPage {
     await this.page.locator('label.checkbox').filter({ has: name }).locator('input[type=checkbox]').setChecked(ticked, { force: true });
   }
 
+  // A role's page only: the checkbox at the top ticks or unticks every permission.
+  async setAllTicked(ticked: boolean): Promise<void> {
+    await this.page.locator('.card-title.permission input[type=checkbox]').setChecked(ticked, { force: true });
+  }
+
   // Returns what the server said to the save.
   async submit(): Promise<SaveResult> {
     const [response] = await Promise.all([
