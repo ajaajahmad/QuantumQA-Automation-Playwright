@@ -126,6 +126,11 @@ export class UserForm {
     await expect(choice.locator('input')).toBeChecked();
   }
 
+  // A form checkbox carries its text in its label, under a styled checkmark that takes the click.
+  async setTicked(label: string, ticked: boolean): Promise<void> {
+    await this.checkbox(label).setChecked(ticked, { force: true });
+  }
+
   // The form's one date field (Expires On, labelled with "(optional)"): a read-only input that opens
   // a calendar with month and year selects, where past days are disabled.
   async pickDate(date: Date): Promise<void> {
@@ -213,6 +218,13 @@ export class UserForm {
     await this.expectText('smpp_max_transmitter_session', String(smpp.maxTransmitterSessions));
     await this.expectText('smpp_max_receiver_session', String(smpp.maxReceiverSessions));
     await this.expectText('smpp_max_transreceiver_session', String(smpp.maxTransceiverSessions));
+  }
+
+  private checkbox(label: string): Locator {
+    return this.page
+      .locator('form label.checkbox')
+      .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(label)}\\s*$`) })
+      .locator('input[type=checkbox]');
   }
 
   // The labels' for attributes hold their text instead of an input id, so fields are found by
