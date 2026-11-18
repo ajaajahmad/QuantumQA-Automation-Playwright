@@ -28,6 +28,18 @@ export function usDate(date: Date): string {
   return `${month}/${day}/${year}`;
 }
 
+// The same day of the month, the given number of months ahead (or back, for a negative count).
+export function monthsAhead(months: number, day = 15): Date {
+  const date = new Date();
+  return new Date(date.getFullYear(), date.getMonth() + months, day);
+}
+
+// A YYYY-MM-DD date as a local Date at midnight.
+export function parseIsoDate(value: string): Date {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export function daysAgo(days: number): Date {
   const date = new Date();
   date.setDate(date.getDate() - days);

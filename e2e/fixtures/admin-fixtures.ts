@@ -1,4 +1,15 @@
-import { test as base } from '@playwright/test';
+import { type APIRequestContext, test as base } from '@playwright/test';
+import {
+  AdminGroupListPage,
+  adminUsersList,
+  rolePermissionsList,
+  salesUsersList,
+} from '../pages/admin/admin-group/admin-group-list.page';
+import { AdminUserFormPage } from '../pages/admin/admin-group/admin-user-form.page';
+import { FeatureConfigurationPage } from '../pages/admin/admin-group/feature-configuration.page';
+import { PermissionsPage } from '../pages/admin/admin-group/permissions.page';
+import { RoleFormPage } from '../pages/admin/admin-group/role-form.page';
+import { SalesUserFormPage } from '../pages/admin/admin-group/sales-user-form.page';
 import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
@@ -7,6 +18,7 @@ import { OrganizationsPage } from '../pages/admin/organizations/organizations.pa
 import { CreateUserPage } from '../pages/admin/users/create-user.page';
 import { EditUserPage } from '../pages/admin/users/edit-user.page';
 import { UsersPage } from '../pages/admin/users/users.page';
+import { createAdminApi } from '../utils/admin-api';
 import { adminSession, restoreSessionStorage } from '../utils/auth-state';
 import { requireAdminUrl } from '../utils/config';
 
@@ -22,6 +34,15 @@ type AdminFixtures = {
   createUserPage: CreateUserPage;
   usersPage: UsersPage;
   editUserPage: EditUserPage;
+  adminApi: APIRequestContext;
+  adminUsersPage: AdminGroupListPage;
+  rolePermissionsPage: AdminGroupListPage;
+  salesUsersPage: AdminGroupListPage;
+  adminUserFormPage: AdminUserFormPage;
+  roleFormPage: RoleFormPage;
+  salesUserFormPage: SalesUserFormPage;
+  permissionsPage: PermissionsPage;
+  featureConfigurationPage: FeatureConfigurationPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -58,6 +79,36 @@ export const test = base.extend<AdminFixtures>({
   },
   editUserPage: async ({ page }, use) => {
     await use(new EditUserPage(page));
+  },
+  // The admin API with the saved admin session's token, which it takes without a Bearer prefix.
+  adminApi: async ({ playwright }, use) => {
+    const api = await createAdminApi(playwright.request);
+    await use(api);
+    await api.dispose();
+  },
+  adminUsersPage: async ({ page }, use) => {
+    await use(new AdminGroupListPage(page, adminUsersList));
+  },
+  rolePermissionsPage: async ({ page }, use) => {
+    await use(new AdminGroupListPage(page, rolePermissionsList));
+  },
+  salesUsersPage: async ({ page }, use) => {
+    await use(new AdminGroupListPage(page, salesUsersList));
+  },
+  adminUserFormPage: async ({ page }, use) => {
+    await use(new AdminUserFormPage(page));
+  },
+  roleFormPage: async ({ page }, use) => {
+    await use(new RoleFormPage(page));
+  },
+  salesUserFormPage: async ({ page }, use) => {
+    await use(new SalesUserFormPage(page));
+  },
+  permissionsPage: async ({ page }, use) => {
+    await use(new PermissionsPage(page));
+  },
+  featureConfigurationPage: async ({ page }, use) => {
+    await use(new FeatureConfigurationPage(page));
   },
 });
 

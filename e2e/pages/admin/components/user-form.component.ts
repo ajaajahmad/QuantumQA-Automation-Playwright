@@ -24,8 +24,9 @@ const smppFieldIds = [
   'smpp_max_transreceiver_session',
 ];
 
-// The form Create User and a user's edit page share. The app builds it from GET users/form/input
-// in collapsible sections, and a closed section's fields are not in the page.
+// The admin panel's form builder, shared by Create User and a user's edit page (built from GET
+// users/form/input in collapsible sections, whose closed sections' fields are not in the page) and
+// by the Admin group's forms (admin users, roles and sales users).
 export class UserForm {
   private readonly page: Page;
   private readonly smppEnable: Locator;
@@ -50,6 +51,15 @@ export class UserForm {
     await this.page.locator(`#${id}`).fill(value);
   }
 
+  // Types key by key and leaves the field, for fields whose handlers listen for keys or blur
+  // rather than input (Create Admin User copies User Name into Email this way).
+  async typeText(id: string, value: string): Promise<void> {
+    const field = this.page.locator(`#${id}`);
+    await field.fill('');
+    await field.pressSequentially(value);
+    await field.press('Tab');
+  }
+
   async expectText(id: string, value: string): Promise<void> {
     await expect(this.page.locator(`#${id}`)).toHaveValue(value);
   }
@@ -65,6 +75,16 @@ export class UserForm {
       .filter({ hasText: option ?? new RegExp(`^\\s*${escapeRegExp(search)}\\s*$`) })
       .first()
       .click();
+  }
+
+  // The options an ng-select offers, as its panel lists them; the panel is closed afterwards.
+  async options(label: string): Promise<string[]> {
+    await this.field(label).locator('ng-select').first().click();
+    const options = this.page.locator('ng-dropdown-panel .ng-option');
+    await expect(options.first()).toBeVisible();
+    const texts = (await options.allInnerTexts()).map((text) => text.trim());
+    await this.page.keyboard.press('Escape');
+    return texts;
   }
 
   async pickFirst(label: string): Promise<void> {
@@ -88,6 +108,65 @@ export class UserForm {
     await mobileField.locator('ng-select input').fill('91');
     await this.page.locator('ng-dropdown-panel .ng-option').filter({ hasText: /\+91\b|India/ }).first().click();
     await mobileField.locator('.country_code input').fill(mobile);
+  }
+
+  async expectEditable(id: string, editable: boolean): Promise<void> {
+    await expect(this.page.locator(`#${id}`)).toBeEditable({ editable });
+  }
+
+  // The values an ng-select shows as picked; picking one of them again in a multi-select drops it.
+  async picked(label: string): Promise<string[]> {
+    return (await this.field(label).locator('.ng-value-label').allTextContents()).map((value) => value.trim());
+  }
+
+  // What an ng-select shows as picked: one value, or every value of a multi-select.
+  async expectPicked(label: string, values: string[]): Promise<void> {
+    await expect(this.field(label).locator('.ng-value-label')).toHaveText(values);
+  }
+
+  async expectChosen(group: string, option: string): Promise<void> {
+    const choice = this.field(group)
+      .locator('.form-check')
+      .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(option)}\\s*$`) });
+    await expect(choice.locator('input')).toBeChecked();
+  }
+
+  // A form checkbox carries its text in its label, under a styled checkmark that takes the click.
+  async setTicked(label: string, ticked: boolean): Promise<void> {
+    await this.checkbox(label).setChecked(ticked, { force: true });
+  }
+
+  async expectTicked(label: string, ticked: boolean): Promise<void> {
+    await expect(this.checkbox(label)).toBeChecked({ checked: ticked });
+  }
+
+  // The number beside the country code, and the code the picker shows (+91).
+  async expectMobile(countryCode: string, mobile: string): Promise<void> {
+    await expect(this.field('Mobile').locator('ng-select .ng-value-label')).toHaveText(countryCode);
+    await expect(this.field('Mobile').locator('.country_code input')).toHaveValue(mobile);
+  }
+
+  // The form's one date field (Expires On, labelled with "(optional)"): a read-only input that opens
+  // a calendar with month and year selects, where past days are disabled.
+  async pickDate(date: Date): Promise<void> {
+    await this.page.locator('form input[name="dp"]').click();
+    const calendar = this.page.locator('.md-drppicker.shown');
+    await calendar.locator('select.yearselect').selectOption(String(date.getFullYear()));
+    await calendar.locator('select.monthselect').selectOption(String(date.getMonth()));
+    await calendar
+      .locator('td.available:not(.off)')
+      .filter({ hasText: new RegExp(`^\\s*${date.getDate()}\\s*$`) })
+      .first()
+      .click();
+    await this.expectDate(date);
+  }
+
+  // The field shows dates as dd/mm/yyyy, sometimes with a trailing space.
+  async expectDate(date: Date): Promise<void> {
+    const shown = [date.getDate(), date.getMonth() + 1].map((part) => String(part).padStart(2, '0'));
+    await expect(this.page.locator('form input[name="dp"]')).toHaveValue(
+      new RegExp(`^\\s*${shown.join('/')}/${date.getFullYear()}\\s*$`),
+    );
   }
 
   // A read-only input that opens a calendar with month and year selects; a day click applies it.
@@ -154,6 +233,13 @@ export class UserForm {
     await this.expectText('smpp_max_transmitter_session', String(smpp.maxTransmitterSessions));
     await this.expectText('smpp_max_receiver_session', String(smpp.maxReceiverSessions));
     await this.expectText('smpp_max_transreceiver_session', String(smpp.maxTransceiverSessions));
+  }
+
+  private checkbox(label: string): Locator {
+    return this.page
+      .locator('form label.checkbox')
+      .filter({ hasText: new RegExp(`^\\s*${escapeRegExp(label)}\\s*$`) })
+      .locator('input[type=checkbox]');
   }
 
   // The labels' for attributes hold their text instead of an input id, so fields are found by

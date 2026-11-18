@@ -7,6 +7,8 @@ type AppConfig = {
   // Empty when admin_url isn't set, so a run without admin specs needs no admin settings.
   adminUrl: string;
   adminApiUrl: string;
+  // The official email domain admin and sales users must have; empty skips the specs that create them.
+  officialEmailDomain: string;
   timeoutMs: number;
   campaignCategory: string;
   smsSenderId: string;
@@ -32,6 +34,7 @@ export const appConfig: AppConfig = {
   adminUrl,
   // The admin panel serves its own API under its folder, e.g. <admin_url>api/v1/settings.
   adminApiUrl: adminUrl && new URL('api/v1', adminUrl).toString(),
+  officialEmailDomain: getConfigValue('official_email_domain', 'OFFICIAL_EMAIL_DOMAIN', ''),
   timeoutMs: parseTimeoutSeconds(getConfigValue('timeout', 'TIMEOUT_SECONDS', '30')) * 1000,
   campaignCategory: getConfigValue('campaign_category', 'CAMPAIGN_CATEGORY', 'automation'),
   smsSenderId: getConfigValue('sms_sender_id', 'SMS_SENDER_ID', ''),

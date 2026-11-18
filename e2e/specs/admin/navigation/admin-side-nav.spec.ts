@@ -40,4 +40,12 @@ test.describe('Admin side navigation', () => {
     await adminSideNav.expectActiveGroup('User Onboarding');
     await adminSideNav.expectEntries(userOnboardingEntries);
   });
+
+  test('opens Admin with Admin Users, Role Permissions and Sales Users', async ({ organizationsPage, adminSideNav }) => {
+    await organizationsPage.open();
+
+    await adminSideNav.openGroup('Admin');
+
+    await adminSideNav.expectEntries(['Admin Users', 'Role Permissions', 'Sales Users']);
+  });
 });

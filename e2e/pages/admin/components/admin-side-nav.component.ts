@@ -25,6 +25,12 @@ export class AdminSideNav {
     await expect(this.entries).toHaveText(labels);
   }
 
+  // Opens a group, which lists its entries in the second column. User Onboarding is open on load.
+  async openGroup(label: string): Promise<void> {
+    await this.groups.filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) }).click();
+    await expect(this.activeGroup).toHaveText(label);
+  }
+
   // Opens an entry of the group that is open.
   async openEntry(label: string): Promise<void> {
     await this.entries.filter({ hasText: new RegExp(`^\\s*${label}\\s*$`) }).getByRole('link').click();
