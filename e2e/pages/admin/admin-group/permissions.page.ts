@@ -33,6 +33,19 @@ export class PermissionsPage {
     this.cancelButton = page.getByRole('button', { name: 'Cancel', exact: true });
   }
 
+  // Runs the click that opens the page and waits for the held permissions to load; ticks made before
+  // they arrive are undone when they do.
+  async openedBy(action: () => Promise<unknown>): Promise<void> {
+    await Promise.all([
+      this.page.waitForResponse(
+        (candidate) =>
+          candidate.request().method() === 'GET' &&
+          /\/api\/v1\/(role|user)-permissions\/(role|user)\/\d+$/.test(new URL(candidate.url()).pathname),
+      ),
+      action(),
+    ]);
+  }
+
   async expectDisplayed(owner: PermissionOwner): Promise<void> {
     await expect(this.page.getByRole('heading', { name: headings[owner], exact: true, level: 1 })).toBeVisible();
   }
