@@ -77,6 +77,16 @@ export class UserForm {
       .click();
   }
 
+  // The options an ng-select offers, as its panel lists them; the panel is closed afterwards.
+  async options(label: string): Promise<string[]> {
+    await this.field(label).locator('ng-select').first().click();
+    const options = this.page.locator('ng-dropdown-panel .ng-option');
+    await expect(options.first()).toBeVisible();
+    const texts = (await options.allInnerTexts()).map((text) => text.trim());
+    await this.page.keyboard.press('Escape');
+    return texts;
+  }
+
   async pickFirst(label: string): Promise<void> {
     await this.field(label).locator('ng-select').first().click();
     await this.page.locator('ng-dropdown-panel .ng-option').first().click();
