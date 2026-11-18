@@ -6,6 +6,7 @@ import {
   salesUsersList,
 } from '../pages/admin/admin-group/admin-group-list.page';
 import { AdminUserFormPage } from '../pages/admin/admin-group/admin-user-form.page';
+import { FeatureConfigurationPage } from '../pages/admin/admin-group/feature-configuration.page';
 import { PermissionsPage } from '../pages/admin/admin-group/permissions.page';
 import { RoleFormPage } from '../pages/admin/admin-group/role-form.page';
 import { SalesUserFormPage } from '../pages/admin/admin-group/sales-user-form.page';
@@ -41,6 +42,7 @@ type AdminFixtures = {
   roleFormPage: RoleFormPage;
   salesUserFormPage: SalesUserFormPage;
   permissionsPage: PermissionsPage;
+  featureConfigurationPage: FeatureConfigurationPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -104,6 +106,9 @@ export const test = base.extend<AdminFixtures>({
   },
   permissionsPage: async ({ page }, use) => {
     await use(new PermissionsPage(page));
+  },
+  featureConfigurationPage: async ({ page }, use) => {
+    await use(new FeatureConfigurationPage(page));
   },
 });
 
