@@ -131,6 +131,10 @@ export class UserForm {
     await this.checkbox(label).setChecked(ticked, { force: true });
   }
 
+  async expectTicked(label: string, ticked: boolean): Promise<void> {
+    await expect(this.checkbox(label)).toBeChecked({ checked: ticked });
+  }
+
   // The form's one date field (Expires On, labelled with "(optional)"): a read-only input that opens
   // a calendar with month and year selects, where past days are disabled.
   async pickDate(date: Date): Promise<void> {
