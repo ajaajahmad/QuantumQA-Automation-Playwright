@@ -55,7 +55,8 @@ test.describe('Sales Users, writing', () => {
     const created = await salesUserFormPage.save();
 
     expect(created, `server answered: ${created.message}`).toMatchObject({ success: true });
-    console.log('DIALOG create:', await salesUserFormPage.messageDialog.closeIfShown());
+    await salesUserFormPage.messageDialog.expectShown('Success', 'Sales user created successfully');
+    await salesUserFormPage.messageDialog.close();
     await salesUsersPage.open();
     const results = await salesUsersPage.search<SalesUserRow>(user.email);
     expect(results.data.items).toEqual([
@@ -80,8 +81,9 @@ test.describe('Sales Users, writing', () => {
 
     const duplicate = await salesUserFormPage.save();
 
-    expect(duplicate.success, `server answered: ${duplicate.message}`).toBe(false);
-    console.log('DIALOG duplicate:', await salesUserFormPage.messageDialog.closeIfShown(), '| server:', duplicate.message);
+    expect(duplicate).toMatchObject({ success: false, message: 'Username already exist, Email id already exist' });
+    await salesUserFormPage.messageDialog.expectShown('Error', 'Username already exist, Email id already exist');
+    await salesUserFormPage.messageDialog.close();
     expect((await findUser(adminApi)).data.items.filter((row) => row.email === user.email)).toHaveLength(1);
   });
 
@@ -96,7 +98,8 @@ test.describe('Sales Users, writing', () => {
     const updated = await salesUserFormPage.update();
 
     expect(updated, `server answered: ${updated.message}`).toMatchObject({ success: true });
-    console.log('DIALOG update:', await salesUserFormPage.messageDialog.closeIfShown());
+    await salesUserFormPage.messageDialog.expectShown('Success', 'Sales user updated successfully');
+    await salesUserFormPage.messageDialog.close();
     await salesUsersPage.open();
     await salesUsersPage.search(user.email);
     await salesUsersPage.table.clickRowAction(user.email, 'Edit');
