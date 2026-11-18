@@ -1,4 +1,10 @@
 import { type APIRequestContext, test as base } from '@playwright/test';
+import {
+  AdminGroupListPage,
+  adminUsersList,
+  rolePermissionsList,
+  salesUsersList,
+} from '../pages/admin/admin-group/admin-group-list.page';
 import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
@@ -24,6 +30,9 @@ type AdminFixtures = {
   usersPage: UsersPage;
   editUserPage: EditUserPage;
   adminApi: APIRequestContext;
+  adminUsersPage: AdminGroupListPage;
+  rolePermissionsPage: AdminGroupListPage;
+  salesUsersPage: AdminGroupListPage;
 };
 
 export const test = base.extend<AdminFixtures>({
@@ -66,6 +75,15 @@ export const test = base.extend<AdminFixtures>({
     const api = await createAdminApi(playwright.request);
     await use(api);
     await api.dispose();
+  },
+  adminUsersPage: async ({ page }, use) => {
+    await use(new AdminGroupListPage(page, adminUsersList));
+  },
+  rolePermissionsPage: async ({ page }, use) => {
+    await use(new AdminGroupListPage(page, rolePermissionsList));
+  },
+  salesUsersPage: async ({ page }, use) => {
+    await use(new AdminGroupListPage(page, salesUsersList));
   },
 });
 
