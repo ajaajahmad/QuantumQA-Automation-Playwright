@@ -24,8 +24,9 @@ const smppFieldIds = [
   'smpp_max_transreceiver_session',
 ];
 
-// The form Create User and a user's edit page share. The app builds it from GET users/form/input
-// in collapsible sections, and a closed section's fields are not in the page.
+// The admin panel's form builder, shared by Create User and a user's edit page (built from GET
+// users/form/input in collapsible sections, whose closed sections' fields are not in the page) and
+// by the Admin group's forms (admin users, roles and sales users).
 export class UserForm {
   private readonly page: Page;
   private readonly smppEnable: Locator;
@@ -48,6 +49,15 @@ export class UserForm {
   // Text, number and textarea fields carry their field name as id.
   async fillText(id: string, value: string): Promise<void> {
     await this.page.locator(`#${id}`).fill(value);
+  }
+
+  // Types key by key and leaves the field, for fields whose handlers listen for keys or blur
+  // rather than input (Create Admin User copies User Name into Email this way).
+  async typeText(id: string, value: string): Promise<void> {
+    const field = this.page.locator(`#${id}`);
+    await field.fill('');
+    await field.pressSequentially(value);
+    await field.press('Tab');
   }
 
   async expectText(id: string, value: string): Promise<void> {
