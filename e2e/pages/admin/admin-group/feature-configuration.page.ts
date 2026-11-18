@@ -22,6 +22,19 @@ export class FeatureConfigurationPage {
     this.cancelButton = page.getByRole('button', { name: 'Cancel', exact: true });
   }
 
+  // Runs the click that opens the page and waits for the saved values to load; ticks made before
+  // they arrive are undone when they do.
+  async openedBy(action: () => Promise<unknown>): Promise<void> {
+    await Promise.all([
+      this.page.waitForResponse(
+        (candidate) =>
+          candidate.request().method() === 'GET' &&
+          /\/api\/v1\/admin-(role|user)-features\/(role|user)\/\d+$/.test(new URL(candidate.url()).pathname),
+      ),
+      action(),
+    ]);
+  }
+
   // owner reads like "Role : QA Admin".
   async expectDisplayed(owner: string): Promise<void> {
     await expect(this.heading).toBeVisible();
