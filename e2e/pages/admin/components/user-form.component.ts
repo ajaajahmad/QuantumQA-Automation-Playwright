@@ -114,6 +114,11 @@ export class UserForm {
     await expect(this.page.locator(`#${id}`)).toBeEditable({ editable });
   }
 
+  // The values an ng-select shows as picked; picking one of them again in a multi-select drops it.
+  async picked(label: string): Promise<string[]> {
+    return (await this.field(label).locator('.ng-value-label').allTextContents()).map((value) => value.trim());
+  }
+
   // What an ng-select shows as picked: one value, or every value of a multi-select.
   async expectPicked(label: string, values: string[]): Promise<void> {
     await expect(this.field(label).locator('.ng-value-label')).toHaveText(values);
