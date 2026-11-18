@@ -74,13 +74,13 @@ export class ListingComponent {
     }
   }
 
-  // Case-insensitive, matching how the app's search behaves.
+  // Case-insensitive, matching how the app's search behaves. Retries until no row lacks the
+  // text: right after a search the table can still show unfiltered rows, and when the first of
+  // them already matches, a one-off snapshot of the rows catches the list mid-update.
   async expectEveryRowToContain(text: string): Promise<void> {
     await expect(this.noRecords).toBeHidden();
     await expect(this.rows.first()).toContainText(text, { ignoreCase: true });
-    for (const row of await this.rows.all()) {
-      await expect(row).toContainText(text, { ignoreCase: true });
-    }
+    await expect(this.rows.filter({ hasNotText: text })).toHaveCount(0);
   }
 
   async expectNoRecords(): Promise<void> {
