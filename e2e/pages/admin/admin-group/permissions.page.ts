@@ -56,6 +56,12 @@ export class PermissionsPage {
     await this.page.locator(`app-checkbox input[type=checkbox][value="${id}"]`).setChecked(ticked, { force: true });
   }
 
+  // A role's page only: the checkbox beside a group's name ticks or unticks the whole group.
+  async setGroupTicked(group: string, ticked: boolean): Promise<void> {
+    const name = this.page.locator('span.label-name', { hasText: new RegExp(`^\\s*${escapeRegExp(group)}\\s*$`) });
+    await this.page.locator('label.checkbox').filter({ has: name }).locator('input[type=checkbox]').setChecked(ticked, { force: true });
+  }
+
   // Returns what the server said to the save.
   async submit(): Promise<SaveResult> {
     const [response] = await Promise.all([
@@ -79,4 +85,8 @@ export class PermissionsPage {
 
 function sorted(ids: number[]): number[] {
   return [...new Set(ids)].sort((a, b) => a - b);
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
