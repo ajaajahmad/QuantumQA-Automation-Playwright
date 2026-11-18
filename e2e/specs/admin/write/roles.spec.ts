@@ -157,7 +157,7 @@ test.describe('The permanent permission role', () => {
     const [add, remove] = held.includes(viewRoles) ? [viewAdminUsers, viewRoles] : [viewRoles, viewAdminUsers];
     await rolePermissionsPage.open();
     await rolePermissionsPage.search(permissionRole);
-    await rolePermissionsPage.table.clickRowAction(permissionRole, 'Manage Role Permissions');
+    await permissionsPage.openedBy(() => rolePermissionsPage.table.clickRowAction(permissionRole, 'Manage Role Permissions'));
     await permissionsPage.expectDisplayed('role');
     await permissionsPage.expectTicked(held);
 
@@ -171,7 +171,7 @@ test.describe('The permanent permission role', () => {
     expect(await getRolePermissionIds(adminApi, role.id)).toEqual([add]);
     await rolePermissionsPage.open();
     await rolePermissionsPage.search(permissionRole);
-    await rolePermissionsPage.table.clickRowAction(permissionRole, 'Manage Role Permissions');
+    await permissionsPage.openedBy(() => rolePermissionsPage.table.clickRowAction(permissionRole, 'Manage Role Permissions'));
     await permissionsPage.expectTicked([add]);
   });
 
@@ -180,7 +180,7 @@ test.describe('The permanent permission role', () => {
     const held = await getRolePermissionIds(adminApi, role.id);
     await rolePermissionsPage.open();
     await rolePermissionsPage.search(permissionRole);
-    await rolePermissionsPage.table.clickRowAction(permissionRole, 'Manage Role Permissions');
+    await permissionsPage.openedBy(() => rolePermissionsPage.table.clickRowAction(permissionRole, 'Manage Role Permissions'));
     await permissionsPage.expectTicked(held);
 
     for (const id of held) {
@@ -201,8 +201,9 @@ test.describe('The permanent permission role', () => {
     const on = (await getRoleFeatureValues(adminApi, role.id))[feature.id] !== 1;
     await rolePermissionsPage.open();
     await rolePermissionsPage.search(permissionRole);
-    await rolePermissionsPage.table.clickRowAction(permissionRole, 'Feature Configurations');
+    await featureConfigurationPage.openedBy(() => rolePermissionsPage.table.clickRowAction(permissionRole, 'Feature Configurations'));
     await featureConfigurationPage.expectDisplayed(`Role : ${permissionRole}`);
+    await featureConfigurationPage.expectTicked(feature.name, !on);
     await featureConfigurationPage.setTicked(feature.name, on);
 
     const saved = await featureConfigurationPage.submit();
@@ -213,7 +214,7 @@ test.describe('The permanent permission role', () => {
     expect((await getRoleFeatureValues(adminApi, role.id))[feature.id]).toBe(on ? 1 : 0);
     await rolePermissionsPage.open();
     await rolePermissionsPage.search(permissionRole);
-    await rolePermissionsPage.table.clickRowAction(permissionRole, 'Feature Configurations');
+    await featureConfigurationPage.openedBy(() => rolePermissionsPage.table.clickRowAction(permissionRole, 'Feature Configurations'));
     await featureConfigurationPage.expectTicked(feature.name, on);
   });
 
