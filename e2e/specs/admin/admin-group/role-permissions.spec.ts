@@ -182,6 +182,39 @@ test.describe('An existing role, read only', () => {
     expect(blocked).toEqual([]);
   });
 
+  test('a group checkbox ticks its whole group, and the top one ticks everything, without saving', async ({
+    page,
+    adminApi,
+    rolePermissionsPage,
+    permissionsPage,
+  }) => {
+    const blocked = await blockWrites(page);
+    const roles = (await rolePermissionsPage.open<RoleRow>()).data.items;
+    const permissions = await getPermissions(adminApi);
+    const all = Object.values(permissions).flat().map((permission) => permission.id);
+    // The role on the first page holding the fewest permissions, so ticking shows a change.
+    const held = await Promise.all(roles.map((role) => getRolePermissionIds(adminApi, role.id)));
+    const index = held.reduce((best, ids, at) => (ids.length < held[best].length ? at : best), 0);
+    test.skip(held[index].length === all.length, 'Every role on the first page holds every permission.');
+    const [group, members] = Object.entries(permissions).find(([, list]) => list.some((permission) => !held[index].includes(permission.id)))!;
+    const memberIds = members.map((permission) => permission.id);
+
+    await rolePermissionsPage.table.clickActionAt(index, 'Manage Role Permissions');
+    await permissionsPage.expectDisplayed('role');
+    await permissionsPage.expectTicked(held[index]);
+
+    await permissionsPage.setGroupTicked(group, true);
+    await permissionsPage.expectTicked([...held[index], ...memberIds]);
+    await permissionsPage.setGroupTicked(group, false);
+    await permissionsPage.expectTicked(held[index].filter((id) => !memberIds.includes(id)));
+    await permissionsPage.setAllTicked(true);
+    await permissionsPage.expectTicked(all);
+
+    await permissionsPage.cancel();
+    await rolePermissionsPage.expectDisplayed();
+    expect(blocked).toEqual([]);
+  });
+
   test('Feature Configurations shows every notification feature, ticked as the role has them', async ({
     page,
     adminApi,
