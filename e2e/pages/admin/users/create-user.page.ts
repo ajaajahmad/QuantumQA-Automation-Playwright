@@ -91,8 +91,8 @@ export class CreateUserPage {
   }
 
   // A save confirms in a Success dialog; closing it opens the new user's edit page, which is
-  // only read here, never saved.
-  async expectSavedAndOpened(user: NewAdminUser): Promise<void> {
+  // only read here, never saved. Returns the new user's id, from the edit route.
+  async expectSavedAndOpened(user: NewAdminUser): Promise<number> {
     // The dialog nests one .modal-content in another; the inner one holds the message and button.
     const dialog = this.page.locator('#modalChild').filter({ hasText: 'User created successfully.' });
     await expect(dialog).toBeVisible();
@@ -105,6 +105,8 @@ export class CreateUserPage {
     if (user.smpp) {
       await this.form.expectSmpp(user.smpp);
     }
+
+    return Number(/\/edit\/(\d+)$/.exec(this.page.url())![1]);
   }
 
   async cancel(): Promise<void> {

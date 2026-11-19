@@ -152,6 +152,34 @@ export function getSalesUser(api: APIRequestContext, salesUserId: number): Promi
   return getData(api, `sales-users/${salesUserId}`);
 }
 
+// A user's stored SMPP settings, from GET users/<id>. is_smpp_enabled is 1 or 0, and the smpp_*
+// values are left out of the response while it is 0.
+export type UserSmppRecord = {
+  is_smpp_enabled: number;
+  smpp_username?: string;
+  smpp_shortcode?: string;
+  smpp_allowed_ip?: string;
+  smpp_max_transmitter_session?: number;
+  smpp_max_receiver_session?: number;
+  smpp_max_transreceiver_session?: number;
+};
+
+export async function getUserSmpp(api: APIRequestContext, userId: number): Promise<UserSmppRecord> {
+  const user = await getData<Record<string, unknown>>(api, `users/${userId}`);
+  return Object.fromEntries(Object.entries(user).filter(([key]) => key.includes('smpp'))) as UserSmppRecord;
+}
+
+// Sends a whole user form as the edit page's Update does, so a spec can send values the page
+// can't enter. Returns the HTTP status and the body, whatever the server said.
+export async function putUser(
+  api: APIRequestContext,
+  userId: number,
+  form: Record<string, unknown>,
+): Promise<{ status: number; body: { success?: boolean; message?: string; data?: { errors?: Record<string, string> } } }> {
+  const response = await api.put(url(`users/${userId}`), { data: form });
+  return { status: response.status(), body: await response.json().catch(() => ({})) };
+}
+
 // Finds the roles whose name contains the text.
 export async function findRoles(api: APIRequestContext, text: string): Promise<AdminRole[]> {
   return (await getAdminList<AdminRole>(api, 'roles', { queryterm: text })).data.items;
