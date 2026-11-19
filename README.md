@@ -20,7 +20,7 @@ npx playwright install chromium
 
 Create two local files, plus a third for the admin panel specs. All are gitignored, so credentials never get committed.
 
-`config/qa.properties`: the app URL, the API host the app calls (`api_url`, required), the admin panel URL (`admin_url`, needed only by the admin specs), the official email domain the admin panel requires for new admin and sales users (`official_email_domain`, needed only by the admin write specs that create them, which skip without it), timeout in seconds, the campaign category, and the SMS/WhatsApp contact list and template names the tests use.
+`config/qa.properties`: the app URL, the API host the app calls (`api_url`, required), the admin panel URL (`admin_url`, needed only by the admin specs), the official email domain the admin panel requires for new admin and sales users (`official_email_domain`, needed only by the admin write specs that create them, which skip without it), timeout in seconds, the campaign category, the SMS/WhatsApp contact list and template names the tests use, and the device token the App Push send spec pushes to (`app_push_device_token`; the send spec skips without it).
 
 ```properties
 app_url=<app-login-url>
@@ -34,6 +34,7 @@ sms_list_name=<sms-contact-list>
 sms_template_name=<sms-template>
 waba_list_name=<whatsapp-contact-list>
 waba_template_name=<whatsapp-template>
+app_push_device_token=<fcm-test-device-token>
 ```
 
 `e2e/test-data/userdata.json`: one or more user rows. The first row is used to log in for all tests; the login spec runs once per row.
@@ -67,7 +68,7 @@ waba_template_name=<whatsapp-template>
 
 `sms_sender_id` is optional. The template picker only lists templates registered under the selected sender ID, so set it to the sender of `sms_template_name`. When it's empty, the form keeps whichever sender it selects by default.
 
-Any property can be overridden with an environment variable: `APP_URL`, `API_URL`, `ADMIN_URL`, `TIMEOUT_SECONDS`, `CAMPAIGN_CATEGORY`, `SMS_SENDER_ID`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`.
+Any property can be overridden with an environment variable: `APP_URL`, `API_URL`, `ADMIN_URL`, `TIMEOUT_SECONDS`, `CAMPAIGN_CATEGORY`, `SMS_SENDER_ID`, `SMS_LIST_NAME`, `SMS_TEMPLATE_NAME`, `WABA_LIST_NAME`, `WABA_TEMPLATE_NAME`, `APP_PUSH_DEVICE_TOKEN`.
 
 ## Running Tests
 
@@ -75,6 +76,7 @@ Any property can be overridden with an environment variable: `APP_URL`, `API_URL
 npm test                    # all specs, headless
 npm run test:headed         # all specs, with the browser window open
 npm run test:sms-campaign   # SMS campaign spec only
+npm run test:app-push-send  # App Push send spec: pushes to app_push_device_token (on demand only)
 npm run test:password-reset # change the account password (on demand only)
 npm run test:admin          # admin panel specs only
 npm run test:admin-write    # admin write specs: Create and Update User and the Admin group, headed (creates records; on demand only)
@@ -98,6 +100,10 @@ The admin panel has three projects of its own, set up the same way. `admin-auth-
 
 > **Note:** the sender ID and template lifecycle specs create, edit and delete real records on staging. Each test removes everything it created through the API afterwards, even when it fails, and test records are named `QAT...` (sender IDs) and `qa_auto_...` (templates).
 
+> **Note:** the App Push form specs save one hidden draft campaign per run (the Create Campaign button saves it at once; drafts are not listed) and upload a small CSV of `app_push_device_token` rows per test, written to `artifacts/app-push/`. They abort every Test Now and send or schedule request, so nothing is pushed. The Configurations specs never configure an integration.
+
+> **Caution:** `npm run test:app-push-send` (`APP_PUSH_SEND=1`) pushes for real to `app_push_device_token`, which must be a testing token: one Test Now and one campaign named `qa_auto_push_<stamp>` (an Android and an iOS contact on the same token) per run, charged to the account's balance. It also schedules `qa_auto_push_scheduled_<stamp>` for the next day and deletes it again; if a run stops between the two, delete that campaign from APP Push > Campaigns before it goes out. Retries are off so a failure can't push twice. Without the flag the spec is skipped.
+
 > **Note:** the SMS campaign spec clicks **Send Now**, so every run creates a campaign on staging. Staging uses a fake SMS setup, so no real messages are delivered. Retries are disabled for this spec so a failure can't create a duplicate campaign.
 
 > **Caution:** `npm run test:password-reset` changes the password of the forgot-password account, which is also the account all tests log in with. It never runs as part of `npm test`, because the reset revokes every token, including the saved one. Run it on its own, not while other tests are running. The spec generates a new password with the same length and character types as the current one, resets it through forgot password, and logs in with it. Only after that login succeeds does it write the new password into `userdata.json` and save the new session, so the next run reuses that token instead of logging in.
@@ -120,7 +126,7 @@ config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects (admin-fixtures.ts for the admin panel)
-  pages/           page objects by UI area (login, dashboard, sms, campaign, reports, users, admin) and shared components
+  pages/           page objects by UI area (login, dashboard, sms, campaign, app-push, reports, users, admin) and shared components
   specs/           test specs (specs/admin/ for the admin panel)
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers
