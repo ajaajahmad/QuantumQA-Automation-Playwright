@@ -20,6 +20,7 @@ import {
   whatsAppAdvanced,
 } from '../pages/reports/advanced-report.page';
 import {
+  appPushSummary,
   emailSummary,
   rcsSummary,
   smsSummary,
@@ -76,6 +77,7 @@ type AppFixtures = {
   createPushCampaignPage: CreatePushCampaignPage;
   pushConfigurationsPage: PushConfigurationsPage;
   createPushIntegrationPage: CreatePushIntegrationPage;
+  appPushSummaryPage: SummaryReportPage;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -195,6 +197,9 @@ export const test = base.extend<AppFixtures>({
   },
   createPushIntegrationPage: async ({ page }, use) => {
     await use(new CreatePushIntegrationPage(page));
+  },
+  appPushSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, appPushSummary));
   },
 });
 
