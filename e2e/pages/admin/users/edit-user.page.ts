@@ -1,4 +1,4 @@
-import { expect, type Locator, type Page } from '@playwright/test';
+import { expect, type Locator, type Page, type Route } from '@playwright/test';
 import { readSaveResult, type SaveResult, UserForm } from '../components/user-form.component';
 
 // The fields the update spec changes. Mobile and email are left out: the Approval page queues
@@ -78,6 +78,25 @@ export class EditUserPage {
     }
 
     return Number(id);
+  }
+
+  // The whole form Update would send, taken from the request with the request itself stopped,
+  // so nothing is saved.
+  async captureUpdate(): Promise<Record<string, unknown>> {
+    const isUpdate = (url: URL) => /\/api\/v1\/users\/\d+$/.test(url.pathname);
+    let form: Record<string, unknown> | undefined;
+    const stop = async (route: Route) => {
+      if (route.request().method() !== 'PUT') return route.fallback();
+      form = route.request().postDataJSON() as Record<string, unknown>;
+      await route.abort();
+    };
+
+    await this.page.route(isUpdate, stop);
+    await this.updateButton.click();
+    await expect.poll(() => form !== undefined, { message: 'an Update request' }).toBe(true);
+    await this.page.unroute(isUpdate, stop);
+    await this.dismissResult();
+    return form!;
   }
 
   // A refused or stopped save may leave a dialog over the page; this closes it if one is open.
