@@ -234,11 +234,16 @@ export class UserForm {
     await this.fillText(smppFieldId[field], value);
   }
 
-  // Ticks Enable SMPP unless it already is, then fills every SMPP field. The fields take input
+  // Ticks Enable SMPP unless it already is, then fills the SMPP fields. The fields take input
   // before the box is ticked, and their maxlength cuts the username at 15 and the shortcode at 20.
   async enterSmpp(smpp: SmppSettings): Promise<void> {
     await this.tickEnableSmpp();
-    await this.fillText('smpp_username', smpp.username);
+
+    // SMPP Username is read-only on the edit page, like Username, so it is only filled on create.
+    if (await this.page.locator('#smpp_username').isEditable()) {
+      await this.fillText('smpp_username', smpp.username);
+    }
+
     await this.fillText('smpp_shortcode', smpp.shortcode);
     await this.fillText('smpp_allowed_ip', smpp.allowedIps);
     await this.fillText('smpp_max_transmitter_session', String(smpp.maxTransmitterSessions));
