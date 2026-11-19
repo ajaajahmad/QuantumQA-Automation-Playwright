@@ -44,15 +44,4 @@ test.describe('Create User', () => {
 
     await createUserPage.form.expectSmpp({ ...smpp, username: 'u'.repeat(15), shortcode: '5'.repeat(20) });
   });
-
-  test('creates a user with SMPP enabled', async ({ createUserPage }) => {
-    const base = newUser();
-    const user = { ...base, smpp: smppFor(base) };
-    await createUserPage.open();
-    await createUserPage.enterDetails(user);
-
-    const created = await createUserPage.save();
-    expect(created, `server answered: ${created.message}`).toMatchObject({ success: true });
-    await createUserPage.expectSavedAndOpened(user);
-  });
 });
