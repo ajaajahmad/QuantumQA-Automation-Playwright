@@ -18,11 +18,16 @@ export class SideNav {
     await this.smsCampaignsSubMenu.click();
   }
 
-  // Expands a section and opens one of its entries. Entry names repeat across sections
-  // (Campaigns, Templates), but only the expanded section's entries are visible.
-  async open(section: string, entry: string): Promise<void> {
+  // Expands a section and opens one of its entries, or an entry of a group under it (Reports >
+  // APP Push > Summary). Entry names repeat across sections (Campaigns, Templates, APP Push), but
+  // only the expanded section's entries are visible, and they come after the section's own.
+  async open(section: string, entry: string, subEntry?: string): Promise<void> {
     await this.nav.getByText(section, { exact: true }).first().click();
     await this.nav.getByText(entry, { exact: true }).filter({ visible: true }).last().click();
+
+    if (subEntry) {
+      await this.nav.getByText(subEntry, { exact: true }).filter({ visible: true }).last().click();
+    }
   }
 
   // Waits for the last section so the list is complete before it is read.
