@@ -169,6 +169,17 @@ export async function getUserSmpp(api: APIRequestContext, userId: number): Promi
   return Object.fromEntries(Object.entries(user).filter(([key]) => key.includes('smpp'))) as UserSmppRecord;
 }
 
+// Sends a whole user form as the edit page's Update does, so a spec can send values the page
+// can't enter. Returns the HTTP status and the body, whatever the server said.
+export async function putUser(
+  api: APIRequestContext,
+  userId: number,
+  form: Record<string, unknown>,
+): Promise<{ status: number; body: { success?: boolean; message?: string; data?: { errors?: Record<string, string> } } }> {
+  const response = await api.put(url(`users/${userId}`), { data: form });
+  return { status: response.status(), body: await response.json().catch(() => ({})) };
+}
+
 // Finds the roles whose name contains the text.
 export async function findRoles(api: APIRequestContext, text: string): Promise<AdminRole[]> {
   return (await getAdminList<AdminRole>(api, 'roles', { queryterm: text })).data.items;
