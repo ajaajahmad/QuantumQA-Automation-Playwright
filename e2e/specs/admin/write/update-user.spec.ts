@@ -56,7 +56,7 @@ test.describe('Update User', () => {
     expect(puts.filter((path) => /\/api\/v1\/users\/\d+$/.test(path))).toEqual([]);
   });
 
-  test('updates the details of a user the Create User spec made', async ({ usersPage, editUserPage }) => {
+  test('REG-05 updates the details of a user the Create User spec made', async ({ usersPage, editUserPage }) => {
     const user = await openCreatedUser(usersPage, editUserPage);
     const details = newDetails();
     await editUserPage.enterDetails(details);

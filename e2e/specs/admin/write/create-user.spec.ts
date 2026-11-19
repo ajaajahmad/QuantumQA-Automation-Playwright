@@ -20,7 +20,7 @@ test.describe('Create User', () => {
     expect(posts.filter((path) => path.endsWith('/api/v1/users'))).toEqual([]);
   });
 
-  test('creates a user, then refuses the same username again', async ({ createUserPage }) => {
+  test('REG-05 creates a user, then refuses the same username again', async ({ createUserPage }) => {
     const user = newUser();
     await createUserPage.open();
     await createUserPage.enterDetails(user);
