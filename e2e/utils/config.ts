@@ -16,6 +16,8 @@ type AppConfig = {
   smsTemplateName: string;
   wabaListName: string;
   wabaTemplateName: string;
+  // The device token the App Push send specs push to; empty skips them.
+  appPushDeviceToken: string;
 };
 
 const rootDir = path.resolve(__dirname, '../..');
@@ -42,6 +44,7 @@ export const appConfig: AppConfig = {
   smsTemplateName: getConfigValue('sms_template_name', 'SMS_TEMPLATE_NAME', 'test_template'),
   wabaListName: getConfigValue('waba_list_name', 'WABA_LIST_NAME', 'automation_waba'),
   wabaTemplateName: getConfigValue('waba_template_name', 'WABA_TEMPLATE_NAME', 'test_template'),
+  appPushDeviceToken: getConfigValue('app_push_device_token', 'APP_PUSH_DEVICE_TOKEN', ''),
 };
 
 // Empty values are treated as unset so `APP_URL=` doesn't blank out the file value.
