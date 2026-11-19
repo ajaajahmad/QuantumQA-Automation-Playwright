@@ -1,4 +1,5 @@
 import { test as base, type APIRequestContext } from '@playwright/test';
+import { CreatePushCampaignPage } from '../pages/app-push/create-push-campaign.page';
 import { CampaignListPage } from '../pages/campaign/campaign-list.page';
 import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
 import { AppHeader } from '../pages/components/app-header.component';
@@ -68,6 +69,7 @@ type AppFixtures = {
   rcsAccountMisPage: AccountMisPage;
   truecallerAccountMisPage: AccountMisPage;
   emailAccountMisPage: AccountMisPage;
+  createPushCampaignPage: CreatePushCampaignPage;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -175,6 +177,9 @@ export const test = base.extend<AppFixtures>({
   },
   emailAccountMisPage: async ({ page }, use) => {
     await use(new AccountMisPage(page, emailAccountMis));
+  },
+  createPushCampaignPage: async ({ page }, use) => {
+    await use(new CreatePushCampaignPage(page));
   },
 });
 
