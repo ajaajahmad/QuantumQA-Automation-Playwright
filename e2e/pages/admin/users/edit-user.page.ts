@@ -80,6 +80,16 @@ export class EditUserPage {
     return Number(id);
   }
 
+  // A refused or stopped save may leave a dialog over the page; this closes it if one is open.
+  async dismissResult(): Promise<void> {
+    const dialog = this.page.locator('#modalChild').filter({ visible: true });
+
+    if (await dialog.isVisible().catch(() => false)) {
+      await dialog.getByRole('button', { name: /^(Close|Cancel|Ok)$/ }).first().click();
+      await expect(dialog).toBeHidden();
+    }
+  }
+
   // A saved update confirms in a Success dialog that covers the page until it is closed.
   async expectUpdated(): Promise<void> {
     const dialog = this.page.locator('#modalChild').filter({ hasText: 'Your changes have been saved successfully.' });
