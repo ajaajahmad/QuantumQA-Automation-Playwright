@@ -11,18 +11,22 @@ export type SmppSettings = {
   maxTransceiverSessions: number;
 };
 
+export type SmppField = keyof SmppSettings;
+
 export type SaveResult = { status: number; success: boolean; message: string };
 
 // The SMPP inputs, by the field names GET users/form/input gives them. The schema marks all six
 // disabled on create and on edit; Enable SMPP is what should unlock them.
-const smppFieldIds = [
-  'smpp_username',
-  'smpp_shortcode',
-  'smpp_allowed_ip',
-  'smpp_max_transmitter_session',
-  'smpp_max_receiver_session',
-  'smpp_max_transreceiver_session',
-];
+export const smppFieldId: Record<SmppField, string> = {
+  username: 'smpp_username',
+  shortcode: 'smpp_shortcode',
+  allowedIps: 'smpp_allowed_ip',
+  maxTransmitterSessions: 'smpp_max_transmitter_session',
+  maxReceiverSessions: 'smpp_max_receiver_session',
+  maxTransceiverSessions: 'smpp_max_transreceiver_session',
+};
+
+const smppFieldIds = Object.values(smppFieldId);
 
 // The admin panel's form builder, shared by Create User and a user's edit page (built from GET
 // users/form/input in collapsible sections, whose closed sections' fields are not in the page) and
@@ -221,6 +225,13 @@ export class UserForm {
     }
 
     await expect(enabled).not.toBeChecked();
+  }
+
+  // One SMPP field, for the negative cases. The session counts are number inputs, so the browser
+  // refuses text like "abc" there; such values go through the API instead.
+  async enterSmppField(field: SmppField, value: string): Promise<void> {
+    await this.openSection('SMPP Configuration');
+    await this.fillText(smppFieldId[field], value);
   }
 
   // Ticks Enable SMPP unless it already is, then fills every SMPP field. The fields take input
