@@ -212,6 +212,17 @@ export class UserForm {
       .toEqual([]);
   }
 
+  async untickEnableSmpp(): Promise<void> {
+    await this.openSection('SMPP Configuration');
+    const enabled = this.smppEnable.locator('input');
+
+    if (await enabled.isChecked()) {
+      await this.smppEnable.locator('.checkmark').click();
+    }
+
+    await expect(enabled).not.toBeChecked();
+  }
+
   // Ticks Enable SMPP unless it already is, then fills every SMPP field. The fields take input
   // before the box is ticked, and their maxlength cuts the username at 15 and the shortcode at 20.
   async enterSmpp(smpp: SmppSettings): Promise<void> {
