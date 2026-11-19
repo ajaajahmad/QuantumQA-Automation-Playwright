@@ -69,6 +69,17 @@ export class EditUserPage {
     return readSaveResult(response);
   }
 
+  // The id the edit route carries, which the admin API uses for the user.
+  userId(): number {
+    const id = /#\/organizations\/user\/edit\/(\d+)$/.exec(this.page.url())?.[1];
+
+    if (!id) {
+      throw new Error(`Not on a user's edit page: ${this.page.url()}`);
+    }
+
+    return Number(id);
+  }
+
   // A saved update confirms in a Success dialog that covers the page until it is closed.
   async expectUpdated(): Promise<void> {
     const dialog = this.page.locator('#modalChild').filter({ hasText: 'Your changes have been saved successfully.' });
