@@ -127,7 +127,7 @@ config/            runtime configuration (qa.properties is local only)
 e2e/
   auth/            login setup that saves reusable auth state
   fixtures/        Playwright fixtures that provide page objects (admin-fixtures.ts for the admin panel)
-  pages/           page objects by UI area (login, dashboard, sms, campaign, app-push, reports, users, admin) and shared components
+  pages/           page objects by UI area (login, dashboard, sms, app-push, reports, users, admin) and shared components
   specs/           test specs (specs/admin/ for the admin panel)
   test-data/       local test data (real files are gitignored)
   utils/           config, auth state, test data, passwords, dates, XPath helpers

@@ -4,10 +4,10 @@ import { test } from '../../fixtures/test-fixtures';
 // does in the campaign creation spec.
 
 test.describe('SMS Campaigns list', () => {
-  test('lists the campaigns the API returned', async ({ campaignListPage }) => {
-    const campaigns = await campaignListPage.open();
+  test('lists the campaigns the API returned', async ({ smsCampaignsPage }) => {
+    const campaigns = await smsCampaignsPage.open();
 
-    await campaignListPage.listing.expectColumns([
+    await smsCampaignsPage.listing.expectColumns([
       'Name',
       'Category',
       'Creation Time',
@@ -15,40 +15,40 @@ test.describe('SMS Campaigns list', () => {
       'Created By',
       'Action',
     ]);
-    await campaignListPage.listing.expectTotalRecords(campaigns.total);
-    await campaignListPage.listing.expectRowCount(Math.min(campaigns.total, 10));
+    await smsCampaignsPage.listing.expectTotalRecords(campaigns.total);
+    await smsCampaignsPage.listing.expectRowCount(Math.min(campaigns.total, 10));
   });
 
-  test('finds a campaign by name', async ({ campaignListPage }) => {
-    const [campaign] = (await campaignListPage.open()).docs;
+  test('finds a campaign by name', async ({ smsCampaignsPage }) => {
+    const [campaign] = (await smsCampaignsPage.open()).docs;
     test.skip(!campaign, 'The account has no campaigns.');
 
-    await campaignListPage.listing.search(campaign.name);
+    await smsCampaignsPage.listing.search(campaign.name);
 
-    await campaignListPage.listing.expectEveryRowToContain(campaign.name);
+    await smsCampaignsPage.listing.expectEveryRowToContain(campaign.name);
   });
 
-  test('shows no records for an unknown name', async ({ campaignListPage }) => {
-    await campaignListPage.open();
+  test('shows no records for an unknown name', async ({ smsCampaignsPage }) => {
+    await smsCampaignsPage.open();
 
-    await campaignListPage.listing.search('zz_no_such_campaign_qa');
+    await smsCampaignsPage.listing.search('zz_no_such_campaign_qa');
 
-    await campaignListPage.listing.expectNoRecords();
+    await smsCampaignsPage.listing.expectNoRecords();
   });
 
-  test('reloads the list when the page size changes', async ({ campaignListPage }) => {
-    const campaigns = await campaignListPage.open();
+  test('reloads the list when the page size changes', async ({ smsCampaignsPage }) => {
+    const campaigns = await smsCampaignsPage.open();
 
-    await campaignListPage.listing.setPageSize(25);
+    await smsCampaignsPage.listing.setPageSize(25);
 
-    await campaignListPage.listing.expectRowCount(Math.min(campaigns.total, 25));
+    await smsCampaignsPage.listing.expectRowCount(Math.min(campaigns.total, 25));
   });
 });
 
 test.describe('Create SMS Campaign form', () => {
-  test.beforeEach(async ({ campaignListPage, createSmsCampaignPage }) => {
-    await campaignListPage.open();
-    await campaignListPage.clickOnCreateCampaignButton();
+  test.beforeEach(async ({ smsCampaignsPage, createSmsCampaignPage }) => {
+    await smsCampaignsPage.open();
+    await smsCampaignsPage.clickOnCreateCampaignButton();
     await createSmsCampaignPage.expectDisplayed();
   });
 

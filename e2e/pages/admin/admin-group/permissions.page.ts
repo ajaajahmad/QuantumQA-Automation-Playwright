@@ -1,5 +1,5 @@
 import { expect, type Locator, type Page } from '@playwright/test';
-import { MessageDialog } from '../components/message-dialog.component';
+import { MessageDialog } from '../components/message.dialog';
 import { readSaveResult, type SaveResult } from '../components/user-form.component';
 
 export type PermissionOwner = 'role' | 'user';

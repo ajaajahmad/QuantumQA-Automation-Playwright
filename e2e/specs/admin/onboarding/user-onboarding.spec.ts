@@ -1,5 +1,5 @@
 import { test } from '../../../fixtures/admin-fixtures';
-import { userOnboardingLists } from '../../../pages/admin/onboarding/admin-list.page';
+import { userOnboardingLists } from '../../../pages/admin/onboarding/onboarding-list.page';
 
 // Read-only: each test opens a page from the side nav and reads its list. Nothing is created,
 // edited or approved, because admin changes reach every account on staging.
@@ -10,11 +10,11 @@ test.describe('User Onboarding', () => {
   });
 
   for (const list of userOnboardingLists) {
-    test(`${list.entry} opens from the side nav with the rows the API returned`, async ({ adminListPage }) => {
-      const response = await adminListPage.openFromSideNav(list);
+    test(`${list.entry} opens from the side nav with the rows the API returned`, async ({ onboardingListPage }) => {
+      const response = await onboardingListPage.openFromSideNav(list);
 
-      await adminListPage.expectColumns(list);
-      await adminListPage.expectRowsOf(response);
+      await onboardingListPage.expectColumns(list);
+      await onboardingListPage.expectRowsOf(response);
     });
   }
 });

@@ -3,7 +3,7 @@ import { AdminSideNav } from '../components/admin-side-nav.component';
 
 // One User Onboarding list page: its side-nav entry, route, heading, the API that fills the table,
 // and the table's columns.
-export type AdminList = {
+export type OnboardingList = {
   entry: string;
   path: string;
   heading: string;
@@ -11,12 +11,12 @@ export type AdminList = {
   columns: string[];
 };
 
-export type AdminListResponse = {
+export type OnboardingListResponse = {
   items: unknown[];
   meta: { totalItems: number };
 };
 
-export const contractsList: AdminList = {
+export const contractsList: OnboardingList = {
   entry: 'Contracts',
   path: '#/organizations/contract',
   heading: 'Contracts',
@@ -24,7 +24,7 @@ export const contractsList: AdminList = {
   columns: ['Contract Description', 'Billing Type', 'Expires On', 'Created At', 'Actions'],
 };
 
-export const usersList: AdminList = {
+export const usersList: OnboardingList = {
   entry: 'Users',
   path: '#/organizations/user',
   heading: 'Users',
@@ -32,7 +32,7 @@ export const usersList: AdminList = {
   columns: ['Username', 'Client ID', 'Company Name', 'Email', 'Parent Username', 'Created At', 'Expired At', 'Actions'],
 };
 
-export const teammatesList: AdminList = {
+export const teammatesList: OnboardingList = {
   entry: 'Teammates',
   path: '#/organizations/teammate',
   heading: 'Teammates',
@@ -40,7 +40,7 @@ export const teammatesList: AdminList = {
   columns: ['Teammate User', 'Parent Username', 'Email', 'Mobile Number', 'Created At', 'Actions'],
 };
 
-export const creditsList: AdminList = {
+export const creditsList: OnboardingList = {
   entry: 'Credits',
   path: '#/organizations/credits-listing',
   heading: 'User Credits',
@@ -56,7 +56,7 @@ export const creditsList: AdminList = {
   ],
 };
 
-export const transactionHistoryList: AdminList = {
+export const transactionHistoryList: OnboardingList = {
   entry: 'Transaction History',
   path: '#/organizations/transaction-history',
   heading: 'Transaction History',
@@ -76,7 +76,7 @@ export const transactionHistoryList: AdminList = {
   ],
 };
 
-export const ruleMatrixList: AdminList = {
+export const ruleMatrixList: OnboardingList = {
   entry: 'Rule Matrix',
   path: '#/organizations/rule-matrix',
   heading: 'Rule Matrix',
@@ -93,7 +93,7 @@ export const ruleMatrixList: AdminList = {
   ],
 };
 
-export const reportSchedulerList: AdminList = {
+export const reportSchedulerList: OnboardingList = {
   entry: 'Report Scheduler',
   path: '#/organizations/scheduler',
   heading: 'Report Scheduler',
@@ -101,7 +101,7 @@ export const reportSchedulerList: AdminList = {
   columns: ['Username', 'Time', 'Frequency', 'Panel', 'API', 'Email Ids', 'Actions'],
 };
 
-export const dailyThresholdList: AdminList = {
+export const dailyThresholdList: OnboardingList = {
   entry: 'Daily Threshold',
   path: '#/organizations/daily-threshold/listing',
   heading: 'Daily Threshold',
@@ -121,7 +121,7 @@ export const dailyThresholdList: AdminList = {
   ],
 };
 
-export const sftpConfigurationsList: AdminList = {
+export const sftpConfigurationsList: OnboardingList = {
   entry: 'SFTP Configurations',
   path: '#/organizations/sftp',
   heading: 'SFTP Configuration',
@@ -140,7 +140,7 @@ export const sftpConfigurationsList: AdminList = {
   ],
 };
 
-export const approvalList: AdminList = {
+export const approvalList: OnboardingList = {
   entry: 'Approval',
   path: '#/organizations/approval',
   heading: 'Approval',
@@ -158,7 +158,7 @@ export const approvalList: AdminList = {
   ],
 };
 
-export const userOnboardingLists: AdminList[] = [
+export const userOnboardingLists: OnboardingList[] = [
   contractsList,
   usersList,
   teammatesList,
@@ -172,7 +172,7 @@ export const userOnboardingLists: AdminList[] = [
 ];
 
 // Read-only: only the list is read. The pages' create, edit and approve buttons are left out on purpose.
-export class AdminListPage {
+export class OnboardingListPage {
   readonly sideNav: AdminSideNav;
 
   private readonly page: Page;
@@ -191,7 +191,7 @@ export class AdminListPage {
   }
 
   // Opens the list from the open side-nav group and returns what its API sent.
-  async openFromSideNav(list: AdminList): Promise<AdminListResponse> {
+  async openFromSideNav(list: OnboardingList): Promise<OnboardingListResponse> {
     const [response] = await Promise.all([
       this.page.waitForResponse((candidate) => isListResponse(candidate, list)),
       this.sideNav.openEntry(list.entry),
@@ -199,21 +199,21 @@ export class AdminListPage {
 
     await expect(this.page).toHaveURL(new RegExp(`${escapeRegExp(list.path)}$`));
     await expect(this.page.getByRole('heading', { name: list.heading, exact: true, level: 1 })).toBeVisible();
-    return ((await response.json()) as { data: AdminListResponse }).data;
+    return ((await response.json()) as { data: OnboardingListResponse }).data;
   }
 
-  async expectColumns(list: AdminList): Promise<void> {
+  async expectColumns(list: OnboardingList): Promise<void> {
     await expect(this.columnHeaders).toHaveText(list.columns);
   }
 
   // The footer formats the total with comma thousands separators, e.g. 1,027 total.
-  async expectRowsOf(response: AdminListResponse): Promise<void> {
+  async expectRowsOf(response: OnboardingListResponse): Promise<void> {
     await expect(this.rows).toHaveCount(response.items.length);
     await expect(this.totalCount).toHaveText(`${response.meta.totalItems.toLocaleString('en-US')} total`);
   }
 }
 
-function isListResponse(response: Response, list: AdminList): boolean {
+function isListResponse(response: Response, list: OnboardingList): boolean {
   const url = new URL(response.url());
   return response.request().method() === 'GET' && url.pathname.endsWith(list.api);
 }
