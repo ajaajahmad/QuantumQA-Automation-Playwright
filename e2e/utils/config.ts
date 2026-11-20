@@ -18,6 +18,9 @@ type AppConfig = {
   wabaTemplateName: string;
   // The device token the App Push send specs push to; empty skips them.
   appPushDeviceToken: string;
+  // The contacts file (uploaded on the App Push import dialog) the send spec sends to, by the start
+  // of its name; staging adds the upload time to the name.
+  appPushRecipientsFile: string;
 };
 
 const rootDir = path.resolve(__dirname, '../..');
@@ -45,6 +48,7 @@ export const appConfig: AppConfig = {
   wabaListName: getConfigValue('waba_list_name', 'WABA_LIST_NAME', 'automation_waba'),
   wabaTemplateName: getConfigValue('waba_template_name', 'WABA_TEMPLATE_NAME', 'test_template'),
   appPushDeviceToken: getConfigValue('app_push_device_token', 'APP_PUSH_DEVICE_TOKEN', ''),
+  appPushRecipientsFile: getConfigValue('app_push_recipients_file', 'APP_PUSH_RECIPIENTS_FILE', 'app_push_recipients'),
 };
 
 // Empty values are treated as unset so `APP_URL=` doesn't blank out the file value.
