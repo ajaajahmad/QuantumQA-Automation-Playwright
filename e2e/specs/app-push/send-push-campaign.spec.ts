@@ -1,30 +1,59 @@
 import { expect, test } from '../../fixtures/test-fixtures';
-import {
-  bothDevices,
-  deleteScheduledPushCampaigns,
-  pushApps,
-  pushCampaigns,
-  pushReport,
-  writeRecipientsFile,
-} from '../../utils/app-push';
+import type { CreatePushCampaignPage } from '../../pages/app-push/create-push-campaign.page';
+import { deleteScheduledPushCampaigns, pushApps, pushCampaigns, pushReport } from '../../utils/app-push';
 import { appConfig } from '../../utils/config';
 import { daysAgo } from '../../utils/date-time';
 
 // Pushes for real, so it runs only with APP_PUSH_SEND=1 (npm run test:app-push-send). Each run
-// test-sends to app_push_device_token once, sends one campaign to it as an Android and an iOS
-// contact, and schedules one for tomorrow, which it deletes again. The token is a testing token
-// (confirmed as one on 2026-11-19); staging charges the sends to the account's INR balance.
-// Retries are off so a retry can't push twice, and the tests share the campaign, so they run in
-// order.
+// test-sends to app_push_device_token once, sends one campaign to the contacts of the file the user
+// uploaded for it (app_push_recipients_file, picked from Existing File), and schedules one for
+// tomorrow, which it deletes again. Its tokens are testing tokens (confirmed 2026-11-19); staging
+// charges the sends to the account's INR balance. The expected counts come from the file's
+// preview, so the file can change. Retries are off so a retry can't push twice, and the tests
+// share the campaign, so they run in order.
 test.describe.configure({ mode: 'serial', retries: 0 });
 test.use({ serviceWorkers: 'block' });
 
 const token = appConfig.appPushDeviceToken;
-const recipients = bothDevices(token);
 const stamp = Date.now();
 const sent = { name: `qa_auto_push_${stamp}`, title: 'QA App Push send', body: 'Hello ' };
 const scheduled = { name: `qa_auto_push_scheduled_${stamp}`, title: 'QA App Push scheduled' };
 let app: string;
+// The file's header row and contacts, from its preview.
+let header: string[] = [];
+let contacts: string[][] = [];
+
+// Imports the user's contacts file from Existing File, mapping its token and device columns, and
+// keeps its rows for the expectations.
+async function importRecipients(form: CreatePushCampaignPage): Promise<void> {
+  await form.openImport();
+  const files = await form.importDialog.existingFiles();
+  test.skip(
+    !files.some((file) => file.startsWith(appConfig.appPushRecipientsFile)),
+    `No uploaded file named ${appConfig.appPushRecipientsFile}...; upload it on the App Push import dialog.`,
+  );
+
+  const preview = await form.importDialog.chooseExisting(appConfig.appPushRecipientsFile);
+  expect(preview.status, preview.name).toBe(200);
+  [header, ...contacts] = preview.rows;
+  await form.importDialog.chooseColumns('Device Token', 'Device Identifier');
+
+  expect(await form.importDialog.import()).toBe(contacts.length);
+}
+
+// How many contacts the file has per device type, as the report keys them (android, ios).
+function contactsByDevice(): Record<string, number> {
+  const column = header.indexOf('Device Identifier');
+  return contacts.reduce<Record<string, number>>((counts, row) => {
+    const device = row[column].toLowerCase();
+    counts[device] = (counts[device] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
+function firstName(): string {
+  return contacts[0][header.indexOf('Name')];
+}
 
 test.beforeAll(() => {
   test.skip(process.env.APP_PUSH_SEND !== '1', 'Pushes for real; run with APP_PUSH_SEND=1.');
@@ -48,7 +77,7 @@ test.afterEach(async ({ api }) => {
 });
 
 test.describe('App Push send', () => {
-  test('test-sends, then sends a personalised campaign to an Android and an iOS device', async ({
+  test('test-sends, then sends a personalised campaign to the contacts file', async ({
     pushCampaignsPage,
     createPushCampaignPage,
   }) => {
@@ -57,7 +86,8 @@ test.describe('App Push send', () => {
     await createPushCampaignPage.enterName(sent.name);
     await createPushCampaignPage.chooseCategory(appConfig.campaignCategory);
     await createPushCampaignPage.chooseApp(app);
-    expect(await createPushCampaignPage.importContacts(writeRecipientsFile(recipients))).toBe(2);
+    await importRecipients(createPushCampaignPage);
+    await createPushCampaignPage.expectContacts(contacts.length);
     await createPushCampaignPage.enterContent({ title: sent.title, body: sent.body });
     await createPushCampaignPage.personalise('Name');
 
@@ -71,8 +101,12 @@ test.describe('App Push send', () => {
 
     await test.step('Send Now submits the campaign', async () => {
       const validation = await createPushCampaignPage.send();
-      expect(validation).toMatchObject({ totalCount: 2, validCount: 2 });
-      await createPushCampaignPage.summary.expectSummary({ 'Campaign Name': sent.name, 'Valid Contacts': '2' });
+      expect(validation).toMatchObject({ totalCount: contacts.length, validCount: contacts.length });
+      await createPushCampaignPage.summary.expectSummary({
+        'Campaign Name': sent.name,
+        'Uploaded Contacts': String(contacts.length),
+        'Valid Contacts': String(contacts.length),
+      });
 
       const result = await createPushCampaignPage.summary.confirm('Send Now');
 
@@ -94,16 +128,15 @@ test.describe('App Push send', () => {
       'Campaign Category': appConfig.campaignCategory,
       'App Name': app,
       Title: sent.title,
-      'Uploaded Contacts': '2',
-      'Valid Contacts': '2',
+      'Uploaded Contacts': String(contacts.length),
+      'Valid Contacts': String(contacts.length),
     });
     // The body is shown personalised for the first contact.
-    await pushCampaignsPage.summary.expectMessage(`${sent.body}${recipients[0].name}`);
+    await pushCampaignsPage.summary.expectMessage(`${sent.body}${firstName()}`);
   });
 
   // The report counts each message once the delivery side has processed it, which took about
-  // two minutes on staging (2026-11-19). The test send is counted under the campaign too: two
-  // Android messages (one test, one contact) and one iOS.
+  // two minutes on staging (2026-11-19). The test send (Android) is counted under the campaign too.
   test('reports the campaign by campaign and by device type', async ({ api, appPushSummaryPage }) => {
     test.setTimeout(12 * 60_000);
 
@@ -116,7 +149,7 @@ test.describe('App Push send', () => {
       .toBe(1);
 
     const [row] = await pushReport(api, 'campaign', daysAgo(1), daysAgo(0), { campaign_name: sent.name });
-    expect(row.count_total).toBe(3);
+    expect(row.count_total).toBe(contacts.length + 1);
     expect(row.created_by).toBeTruthy();
     test.info().annotations.push({
       type: 'observed',
@@ -124,7 +157,9 @@ test.describe('App Push send', () => {
     });
 
     const byDevice = await pushReport(api, 'device_type', daysAgo(1), daysAgo(0), { campaign_name: sent.name });
-    expect(Object.fromEntries(byDevice.map((doc) => [doc.device_type, doc.count_total]))).toEqual({ android: 2, ios: 1 });
+    const expected = contactsByDevice();
+    expected.android = (expected.android ?? 0) + 1;
+    expect(Object.fromEntries(byDevice.map((doc) => [doc.device_type, doc.count_total]))).toEqual(expected);
 
     await appPushSummaryPage.open();
     const filtered = await appPushSummaryPage.filterBar.filterBy('Campaign Name', sent.name);
@@ -146,7 +181,7 @@ test.describe('App Push send', () => {
     await createPushCampaignPage.enterName(scheduled.name);
     await createPushCampaignPage.chooseCategory(appConfig.campaignCategory);
     await createPushCampaignPage.chooseApp(app);
-    await createPushCampaignPage.importContacts(writeRecipientsFile(recipients));
+    await importRecipients(createPushCampaignPage);
     await createPushCampaignPage.enterContent({ title: scheduled.title });
     await createPushCampaignPage.switchSchedule();
     await createPushCampaignPage.scheduleOn(tomorrow);
