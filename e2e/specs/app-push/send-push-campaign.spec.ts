@@ -1,5 +1,12 @@
 import { expect, test } from '../../fixtures/test-fixtures';
-import { bothDevices, pushApps, pushCampaigns, pushReport, writeRecipientsFile } from '../../utils/app-push';
+import {
+  bothDevices,
+  deleteScheduledPushCampaigns,
+  pushApps,
+  pushCampaigns,
+  pushReport,
+  writeRecipientsFile,
+} from '../../utils/app-push';
 import { appConfig } from '../../utils/config';
 import { daysAgo } from '../../utils/date-time';
 
@@ -28,6 +35,16 @@ test.beforeEach(async ({ api }) => {
   const apps = await pushApps(api);
   test.skip(apps.length === 0, 'The account has no active App Push integration.');
   app = apps[0].app_name;
+});
+
+// Whatever a test did, nothing scheduled is left to go out tomorrow; a no-op once the schedule test
+// has deleted its campaign, and before it has made one.
+test.afterEach(async ({ api }) => {
+  const deleted = await deleteScheduledPushCampaigns(api, scheduled.name);
+
+  if (deleted.length > 0) {
+    test.info().annotations.push({ type: 'cleanup', description: `Deleted scheduled ${scheduled.name} through the API.` });
+  }
 });
 
 test.describe('App Push send', () => {
