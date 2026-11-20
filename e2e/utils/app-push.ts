@@ -82,6 +82,21 @@ export async function pushCampaigns(api: APIRequestContext, name = ''): Promise<
   return ((await response.json()) as { data: { docs: PushCampaign[] } }).data.docs;
 }
 
+// Deletes every campaign of that name the list still offers to delete (scheduled ones; sent ones
+// can't be). The send spec's safety net, so a failed run leaves nothing to go out later.
+export async function deleteScheduledPushCampaigns(api: APIRequestContext, name: string): Promise<string[]> {
+  const deleted: string[] = [];
+
+  for (const campaign of await pushCampaigns(api, name)) {
+    if (campaign.name === name && campaign.is_delete) {
+      const response = await api.delete(`/api/v1/app-push-campaign/${campaign._id}`);
+      if (response.ok()) deleted.push(campaign._id);
+    }
+  }
+
+  return deleted;
+}
+
 // The summary report for one view over the given days, optionally filtered, e.g.
 // { campaign_name: 'x' }. The report counts each message, test sends included.
 export async function pushReport(
