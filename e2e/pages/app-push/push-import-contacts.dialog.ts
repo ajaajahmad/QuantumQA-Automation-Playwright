@@ -11,8 +11,7 @@ export class PushImportContactsDialog {
   private readonly fileInput: Locator;
   private readonly existingFile: Locator;
   private readonly uploaded: Locator;
-  private readonly tokenColumn: Locator;
-  private readonly identifierColumn: Locator;
+  private readonly selects: Locator;
   private readonly sheet: Locator;
   private readonly previewButton: Locator;
   private readonly previewTable: Locator;
@@ -25,10 +24,7 @@ export class PushImportContactsDialog {
     this.fileInput = this.dialog.locator('input[type=file]');
     this.existingFile = this.dialog.locator('ng-select').filter({ hasText: 'Existing File' });
     this.uploaded = this.dialog.getByText('File Uploaded Successfully.');
-    // After an upload the two column lists are the dialog's only selects, token first. They are
-    // found by position because a pick replaces the placeholder that names them.
-    this.tokenColumn = this.dialog.locator('ng-select').nth(0);
-    this.identifierColumn = this.dialog.locator('ng-select').nth(1);
+    this.selects = this.dialog.locator('ng-select');
     this.sheet = this.dialog.locator('ng-select').filter({ hasText: 'Sheet' });
     this.previewButton = this.dialog.getByRole('button', { name: 'Preview', exact: true });
     this.previewTable = this.dialog.locator('table');
@@ -77,18 +73,21 @@ export class PushImportContactsDialog {
 
   // The column lists offer every header of the file.
   async expectColumnChoices(headers: string[]): Promise<void> {
-    await this.tokenColumn.click();
+    const [tokenColumn] = await this.columnSelects();
+    await tokenColumn.click();
     await expect(this.options).toHaveText(['Select', ...headers]);
     await this.page.keyboard.press('Escape');
   }
 
   async chooseColumns(token: string, identifier: string): Promise<void> {
-    await this.pick(this.tokenColumn, token);
-    await this.pick(this.identifierColumn, identifier);
+    const [tokenColumn, identifierColumn] = await this.columnSelects();
+    await this.pick(tokenColumn, token);
+    await this.pick(identifierColumn, identifier);
   }
 
   async chooseTokenColumn(token: string): Promise<void> {
-    await this.pick(this.tokenColumn, token);
+    const [tokenColumn] = await this.columnSelects();
+    await this.pick(tokenColumn, token);
   }
 
   // The preview shows the header row and then the file's rows, cell by cell.
@@ -126,6 +125,15 @@ export class PushImportContactsDialog {
     await expect(this.dialog).toBeVisible();
     this.page.off('request', record);
     expect(requests.filter((url) => url.includes('/import-file'))).toEqual([]);
+  }
+
+  // The token and identifier lists are the dialog's last two selects (a spreadsheet's Sheet list
+  // comes before them). They are found by position because a pick replaces the placeholder that
+  // names them.
+  private async columnSelects(): Promise<[Locator, Locator]> {
+    await expect.poll(() => this.selects.count(), { message: 'the column lists' }).toBeGreaterThanOrEqual(2);
+    const count = await this.selects.count();
+    return [this.selects.nth(count - 2), this.selects.nth(count - 1)];
   }
 
   private async pick(select: Locator, option: string): Promise<void> {
