@@ -48,7 +48,7 @@ export const appConfig: AppConfig = {
   wabaListName: getConfigValue('waba_list_name', 'WABA_LIST_NAME', 'automation_waba'),
   wabaTemplateName: getConfigValue('waba_template_name', 'WABA_TEMPLATE_NAME', 'test_template'),
   appPushDeviceToken: getConfigValue('app_push_device_token', 'APP_PUSH_DEVICE_TOKEN', ''),
-  appPushRecipientsFile: getConfigValue('app_push_recipients_file', 'APP_PUSH_RECIPIENTS_FILE', 'app_push_recipients'),
+  appPushRecipientsFile: getConfigValue('app_push_recipients_file', 'APP_PUSH_RECIPIENTS_FILE', 'app_push_recipient'),
 };
 
 // Empty values are treated as unset so `APP_URL=` doesn't blank out the file value.
