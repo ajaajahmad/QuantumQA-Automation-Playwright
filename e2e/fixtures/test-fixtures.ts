@@ -3,8 +3,8 @@ import { CreatePushCampaignPage } from '../pages/app-push/create-push-campaign.p
 import { CreatePushIntegrationPage } from '../pages/app-push/create-push-integration.page';
 import { PushCampaignsPage } from '../pages/app-push/push-campaigns.page';
 import { PushConfigurationsPage } from '../pages/app-push/push-configurations.page';
-import { CampaignListPage } from '../pages/campaign/campaign-list.page';
-import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
+import { CampaignListPage } from '../pages/sms/campaign-list.page';
+import { CreateSmsCampaignPage } from '../pages/sms/create-sms-campaign.page';
 import { AppHeader } from '../pages/components/app-header.component';
 import { LogoutComponent } from '../pages/components/logout.component';
 import { SideNav } from '../pages/components/side-nav.component';
