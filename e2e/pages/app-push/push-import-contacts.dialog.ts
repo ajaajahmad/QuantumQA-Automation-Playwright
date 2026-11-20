@@ -4,6 +4,10 @@ import { expect, type Locator, type Page, type Response } from '@playwright/test
 // the headers it found and how many rows sit under them.
 export type UploadedFile = { id: string; name: string; headers: string[]; rows: number };
 
+// What the preview of a file uploaded before answered: its full name, the status, the raw reply,
+// and on success its rows, header row first.
+export type ExistingFilePreview = { name: string; status: number; body: string; rows: string[][] };
+
 // Step 2's Import Contacts dialog on the App Push create page: upload a file (or pick one uploaded
 // before), say which columns hold the device token and the device identifier, then import.
 export class PushImportContactsDialog {
@@ -58,17 +62,29 @@ export class PushImportContactsDialog {
     return names;
   }
 
-  // Picks a file uploaded before, then the sheet (the list starts with a Select placeholder), and
-  // returns what the preview request the sheet triggers answered.
-  async chooseExisting(name: string, sheet = 'Sheet1'): Promise<{ status: number; body: string }> {
+  // Picks a file uploaded before by (the start of) its name and returns what its preview
+  // answered. A CSV previews on the pick; a spreadsheet first asks for a sheet, whose list starts
+  // with a Select placeholder.
+  async chooseExisting(name: string, sheet = 'Sheet1'): Promise<ExistingFilePreview> {
     await this.existingFile.click();
-    await this.options.filter({ hasText: name }).first().click();
-    await this.sheet.click();
-    const [response] = await Promise.all([
-      this.page.waitForResponse((candidate) => isCall(candidate, 'GET', /\/app-push-campaign\/view-file-data$/)),
-      this.options.filter({ hasText: new RegExp(`^\\s*${sheet}\\s*$`) }).click(),
-    ]);
-    return { status: response.status(), body: await response.text() };
+    const file = this.options.filter({ hasText: name }).first();
+    const fullName = (await file.innerText()).trim();
+    const preview = this.page.waitForResponse((candidate) =>
+      isCall(candidate, 'GET', /\/app-push-campaign\/view-file-data$/),
+    );
+
+    if (fullName.toLowerCase().endsWith('.csv')) {
+      await file.click();
+    } else {
+      await file.click();
+      await this.sheet.click();
+      await this.options.filter({ hasText: new RegExp(`^\\s*${sheet}\\s*$`) }).click();
+    }
+
+    const response = await preview;
+    const body = await response.text();
+    const rows = response.ok() ? ((JSON.parse(body) as { data: string[][] }).data ?? []) : [];
+    return { name: fullName, status: response.status(), body, rows };
   }
 
   // The column lists offer every header of the file.
