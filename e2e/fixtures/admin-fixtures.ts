@@ -13,7 +13,7 @@ import { SalesUserFormPage } from '../pages/admin/admin-group/sales-user-form.pa
 import { AdminHeader } from '../pages/admin/components/admin-header.component';
 import { AdminSideNav } from '../pages/admin/components/admin-side-nav.component';
 import { AdminLoginPage } from '../pages/admin/login/admin-login.page';
-import { AdminListPage } from '../pages/admin/onboarding/admin-list.page';
+import { OnboardingListPage } from '../pages/admin/onboarding/onboarding-list.page';
 import { OrganizationsPage } from '../pages/admin/organizations/organizations.page';
 import { CreateUserPage } from '../pages/admin/users/create-user.page';
 import { EditUserPage } from '../pages/admin/users/edit-user.page';
@@ -30,7 +30,7 @@ type AdminFixtures = {
   adminHeader: AdminHeader;
   adminSideNav: AdminSideNav;
   organizationsPage: OrganizationsPage;
-  adminListPage: AdminListPage;
+  onboardingListPage: OnboardingListPage;
   createUserPage: CreateUserPage;
   usersPage: UsersPage;
   editUserPage: EditUserPage;
@@ -68,8 +68,8 @@ export const test = base.extend<AdminFixtures>({
   organizationsPage: async ({ page }, use) => {
     await use(new OrganizationsPage(page));
   },
-  adminListPage: async ({ page }, use) => {
-    await use(new AdminListPage(page));
+  onboardingListPage: async ({ page }, use) => {
+    await use(new OnboardingListPage(page));
   },
   createUserPage: async ({ page }, use) => {
     await use(new CreateUserPage(page));
