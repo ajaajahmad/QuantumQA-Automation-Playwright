@@ -5,7 +5,7 @@ export type CampaignRow = {
   name: string;
 };
 
-export class CampaignListPage {
+export class SmsCampaignsPage {
   readonly listing: ListingComponent;
 
   private readonly heading: Locator;

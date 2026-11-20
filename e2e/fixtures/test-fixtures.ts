@@ -3,8 +3,6 @@ import { CreatePushCampaignPage } from '../pages/app-push/create-push-campaign.p
 import { CreatePushIntegrationPage } from '../pages/app-push/create-push-integration.page';
 import { PushCampaignsPage } from '../pages/app-push/push-campaigns.page';
 import { PushConfigurationsPage } from '../pages/app-push/push-configurations.page';
-import { CampaignListPage } from '../pages/sms/campaign-list.page';
-import { CreateSmsCampaignPage } from '../pages/sms/create-sms-campaign.page';
 import { AppHeader } from '../pages/components/app-header.component';
 import { LogoutComponent } from '../pages/components/logout.component';
 import { SideNav } from '../pages/components/side-nav.component';
@@ -29,8 +27,10 @@ import {
   whatsAppSummary,
 } from '../pages/reports/summary-report.page';
 import { CreateSenderIdPage } from '../pages/sms/create-sender-id.page';
+import { CreateSmsCampaignPage } from '../pages/sms/create-sms-campaign.page';
 import { CreateTemplatePage } from '../pages/sms/create-template.page';
 import { SenderIdsPage } from '../pages/sms/sender-ids.page';
+import { SmsCampaignsPage } from '../pages/sms/sms-campaigns.page';
 import { TemplatesPage } from '../pages/sms/templates.page';
 import {
   AccountMisPage,
@@ -52,7 +52,7 @@ type AppFixtures = {
   appHeader: AppHeader;
   dashboardPage: DashboardPage;
   sideNav: SideNav;
-  campaignListPage: CampaignListPage;
+  smsCampaignsPage: SmsCampaignsPage;
   createSmsCampaignPage: CreateSmsCampaignPage;
   senderIdsPage: SenderIdsPage;
   createSenderIdPage: CreateSenderIdPage;
@@ -123,8 +123,8 @@ export const test = base.extend<AppFixtures>({
   sideNav: async ({ page }, use) => {
     await use(new SideNav(page));
   },
-  campaignListPage: async ({ page }, use) => {
-    await use(new CampaignListPage(page));
+  smsCampaignsPage: async ({ page }, use) => {
+    await use(new SmsCampaignsPage(page));
   },
   createSmsCampaignPage: async ({ page }, use) => {
     await use(new CreateSmsCampaignPage(page));

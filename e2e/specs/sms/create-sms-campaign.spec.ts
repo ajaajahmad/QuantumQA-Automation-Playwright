@@ -9,14 +9,14 @@ test.describe('SMS campaign creation', () => {
   test('creates an SMS campaign with persisted auth state', async ({
     page,
     sideNav,
-    campaignListPage,
+    smsCampaignsPage,
     createSmsCampaignPage,
   }) => {
     await page.goto(appConfig.appUrl, { waitUntil: 'domcontentloaded' });
 
     await sideNav.openSmsCampaigns();
-    await campaignListPage.acknowledgeDltPopupWindow();
-    await campaignListPage.clickOnCreateCampaignButton();
+    await smsCampaignsPage.acknowledgeDltPopupWindow();
+    await smsCampaignsPage.clickOnCreateCampaignButton();
 
     const categoryCreated = await createSmsCampaignPage.fillCampaignDetails({
       name: appendLocalTimestamp('Test_Camp'),
