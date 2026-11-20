@@ -12,6 +12,7 @@
     "test:ui": "playwright test --ui",
     "auth:setup": "playwright test --project=auth-setup",
     "test:sms-campaign": "playwright test e2e/specs/campaign/create-sms-campaign.spec.ts",
+    "test:app-push-send": "APP_PUSH_SEND=1 playwright test e2e/specs/app-push/send-push-campaign.spec.ts",
     "test:password-reset": "RESET_PASSWORD=1 playwright test --project=password-reset",
     "test:admin": "playwright test --project=admin-login --project=admin",
     "test:admin-write": "HEADED=1 ADMIN_WRITE=1 playwright test --project=admin-write",

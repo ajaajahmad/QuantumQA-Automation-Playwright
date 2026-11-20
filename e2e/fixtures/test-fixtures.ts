@@ -1,4 +1,8 @@
 import { test as base, type APIRequestContext } from '@playwright/test';
+import { CreatePushCampaignPage } from '../pages/app-push/create-push-campaign.page';
+import { CreatePushIntegrationPage } from '../pages/app-push/create-push-integration.page';
+import { PushCampaignsPage } from '../pages/app-push/push-campaigns.page';
+import { PushConfigurationsPage } from '../pages/app-push/push-configurations.page';
 import { CampaignListPage } from '../pages/campaign/campaign-list.page';
 import { CreateSmsCampaignPage } from '../pages/campaign/create-sms-campaign.page';
 import { AppHeader } from '../pages/components/app-header.component';
@@ -16,6 +20,7 @@ import {
   whatsAppAdvanced,
 } from '../pages/reports/advanced-report.page';
 import {
+  appPushSummary,
   emailSummary,
   rcsSummary,
   smsSummary,
@@ -68,6 +73,11 @@ type AppFixtures = {
   rcsAccountMisPage: AccountMisPage;
   truecallerAccountMisPage: AccountMisPage;
   emailAccountMisPage: AccountMisPage;
+  pushCampaignsPage: PushCampaignsPage;
+  createPushCampaignPage: CreatePushCampaignPage;
+  pushConfigurationsPage: PushConfigurationsPage;
+  createPushIntegrationPage: CreatePushIntegrationPage;
+  appPushSummaryPage: SummaryReportPage;
 };
 
 export const test = base.extend<AppFixtures>({
@@ -175,6 +185,21 @@ export const test = base.extend<AppFixtures>({
   },
   emailAccountMisPage: async ({ page }, use) => {
     await use(new AccountMisPage(page, emailAccountMis));
+  },
+  pushCampaignsPage: async ({ page }, use) => {
+    await use(new PushCampaignsPage(page));
+  },
+  createPushCampaignPage: async ({ page }, use) => {
+    await use(new CreatePushCampaignPage(page));
+  },
+  pushConfigurationsPage: async ({ page }, use) => {
+    await use(new PushConfigurationsPage(page));
+  },
+  createPushIntegrationPage: async ({ page }, use) => {
+    await use(new CreatePushIntegrationPage(page));
+  },
+  appPushSummaryPage: async ({ page }, use) => {
+    await use(new SummaryReportPage(page, appPushSummary));
   },
 });
 

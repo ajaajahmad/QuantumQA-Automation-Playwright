@@ -10,7 +10,8 @@ export type SummaryReport = {
   heading: string;
   path: string;
   viaPanelReport: string;
-  viaApiReport: string;
+  // App Push has no Via API tab.
+  viaApiReport?: string;
   // Only channels with two-way messaging have the Incoming Messages tab.
   viaIncomingReport?: string;
 };
@@ -44,6 +45,12 @@ export const truecallerSummary: SummaryReport = {
   viaApiReport: '/api/v1/truecaller-api-mis',
 };
 
+export const appPushSummary: SummaryReport = {
+  heading: 'App Push Summary',
+  path: '/reports/app-push/summary',
+  viaPanelReport: '/api/v1/app-push-mis/viewby-campaign',
+};
+
 export const emailSummary: SummaryReport = {
   heading: 'Email Summary',
   path: '/reports/email/summary',
@@ -65,11 +72,9 @@ export class SummaryReportPage {
     private readonly page: Page,
     private readonly report: SummaryReport,
   ) {
-    const reportPaths = [report.viaPanelReport, report.viaApiReport];
-
-    if (report.viaIncomingReport) {
-      reportPaths.push(report.viaIncomingReport);
-    }
+    const reportPaths = [report.viaPanelReport, report.viaApiReport, report.viaIncomingReport].filter(
+      (reportPath): reportPath is string => reportPath !== undefined,
+    );
 
     this.filters = new ReportFiltersComponent(page, reportPaths);
     this.filterBar = new ReportFilterBarComponent(page, reportPaths);
@@ -92,6 +97,10 @@ export class SummaryReportPage {
   }
 
   async openViaApi(): Promise<ReportResponse> {
+    if (!this.report.viaApiReport) {
+      throw new Error(`${this.report.heading} has no Via API tab.`);
+    }
+
     const report = await waitForReport(this.page, [this.report.viaApiReport], () => this.viaApiTab.click());
     await expect(this.page).toHaveURL(new RegExp(`${this.report.path}/via-api$`));
     return report;
