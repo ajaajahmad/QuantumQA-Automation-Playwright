@@ -35,15 +35,15 @@ export class PushCampaignsPage {
     this.totalRecords = page.getByText(/Total Records :-/);
   }
 
-  // Returns the list the table was built from.
+  // Returns the list the table was built from. The wait starts once the new page is committed,
+  // so a list the previous page was still loading (Send and Schedule land here on their own)
+  // can't be taken for this one.
   async open(): Promise<PushCampaignList> {
-    const [response] = await Promise.all([
-      this.page.waitForResponse(
-        (candidate) =>
-          candidate.request().method() === 'POST' && new URL(candidate.url()).pathname.endsWith('/app-push-campaign/getCampaigns'),
-      ),
-      this.page.goto(new URL('/campaigns/app-push', appConfig.appUrl).toString(), { waitUntil: 'domcontentloaded' }),
-    ]);
+    await this.page.goto(new URL('/campaigns/app-push', appConfig.appUrl).toString(), { waitUntil: 'commit' });
+    const response = await this.page.waitForResponse(
+      (candidate) =>
+        candidate.request().method() === 'POST' && new URL(candidate.url()).pathname.endsWith('/app-push-campaign/getCampaigns'),
+    );
     await expect(this.heading).toBeVisible();
     return ((await response.json()) as { data: PushCampaignList }).data;
   }
